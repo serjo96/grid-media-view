@@ -1,0 +1,213 @@
+.uploadDrop {
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.uploadDropActive {
+  border-color: rgba(124, 92, 255, 0.8);
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+}
+
+.uploadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.uploadHint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.stackItem {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  position: relative;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.stackMeta {
+  min-width: 0;
+}
+
+.stackName {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stackSub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.stackActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.previewWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.previewCanvas {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 10px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.gridStage {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.tile {
+  position: absolute;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tileInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.tileOverlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 45%, rgba(0, 0, 0, 0.35));
+}
+
+.tile:hover .tileOverlay {
+  opacity: 1;
+}
+
+.tileBadge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tileBtn {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  z-index: 1000;
+}
+
+.modal {
+  width: min(920px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--panel2);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.modalHeader {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.modalTitle {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.modalBody {
+  position: relative;
+  height: 58vh;
+  min-height: 360px;
+}
+
+.modalFooter {
+  border-top: 1px solid var(--border);
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.sliderRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.range {
+  width: 220px;
+}
+
