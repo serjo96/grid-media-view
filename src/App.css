@@ -23,6 +23,14 @@
   gap: 12px;
 }
 
+.topbarControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .brand {
   display: flex;
   flex-direction: column;
@@ -125,5 +133,40 @@
 @media (max-width: 980px) {
   .content {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbarInner {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .topbarControls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .content {
+    padding: 12px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbarInner {
+    padding: 10px 12px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .panelHeader {
+    flex-wrap: wrap;
+  }
+
+  .panelHint {
+    width: 100%;
   }
 }

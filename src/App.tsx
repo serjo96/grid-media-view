@@ -48,7 +48,7 @@ function App() {
             <div className="subtitle">Instagram (profile grid), Telegram album (up to 10), Custom</div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="topbarControls">
             <label className="pill">
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>Preset</span>
               <select
