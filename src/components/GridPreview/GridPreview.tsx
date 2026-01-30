@@ -49,7 +49,8 @@ export function GridPreview() {
         : preset === "inst"
           ? 560
           : 460;
-    return Math.max(240, Math.min(target, Math.floor(availableWidth || target)));
+    const safeAvail = availableWidth ? Math.max(0, Math.floor(availableWidth) - 2) : 0;
+    return Math.max(160, Math.min(target, Math.floor(safeAvail || target)));
   }, [availableWidth, custom.containerWidth, preset]);
 
   const gap = useMemo(() => {

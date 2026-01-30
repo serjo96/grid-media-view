@@ -49,7 +49,8 @@ export function StaticGridPreview(props: {
   }, [custom.columns, custom.tileAspect, items, preset]);
 
   const targetWidth = Math.floor(widthPx ?? getDefaultWidth(preset, custom.containerWidth));
-  const containerWidthPx = Math.max(240, Math.min(maxWidthPx, Math.floor(availableWidth || targetWidth), targetWidth));
+  const safeAvail = availableWidth ? Math.max(0, Math.floor(availableWidth) - 2) : 0;
+  const containerWidthPx = Math.max(160, Math.min(maxWidthPx, Math.floor(safeAvail || targetWidth), targetWidth));
   const stageHeightPx = Math.max(120, containerWidthPx * layout.normalizedHeight);
   const gap = getPresetGap(preset, custom.gap);
 

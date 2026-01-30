@@ -282,7 +282,8 @@
   border-radius: 16px;
   padding: 12px;
   max-height: 72vh;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: grid;
   gap: 10px;
 }
@@ -302,6 +303,7 @@
   border-radius: 18px 18px 6px 18px;
   padding: 10px;
   max-width: min(440px, 100%);
+  min-width: 0;
   cursor: pointer;
   text-align: left;
 }
