@@ -15,8 +15,8 @@ export function GridPreview() {
   const items = activeGrid?.items ?? [];
   const reorder = useAppStore((s) => s.reorder);
 
-  const stageRef = useRef<HTMLDivElement | null>(null);
-  const { width: availableWidth } = useElementSize(stageRef);
+  const stageWrapRef = useRef<HTMLDivElement | null>(null);
+  const { width: availableWidth } = useElementSize(stageWrapRef);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -76,51 +76,53 @@ export function GridPreview() {
         <div className="uploadHint">Показаны первые 10 файлов (лимит альбома Telegram).</div>
       )}
 
-      <div ref={stageRef} className="previewCanvas">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={(e) => {
-            const overId = e.over?.id;
-            if (!overId) return;
-            reorder(String(e.active.id), String(overId));
-          }}
-        >
-          <SortableContext items={ids} strategy={rectSortingStrategy}>
-            <div
-              className="gridStage"
-              style={{
-                width: `${containerWidthPx}px`,
-                height: `${stageHeightPx}px`,
-              }}
-            >
-              {layout.rects.map((r, idx) => {
-                const px: PxRect = {
-                  left: r.x * containerWidthPx,
-                  top: r.y * containerWidthPx,
-                  width: r.w * containerWidthPx,
-                  height: r.h * containerWidthPx,
-                };
-                const pxWithGap = applyGap({
-                  rect: r,
-                  px,
-                  gap,
-                  layoutHeightNorm: layout.normalizedHeight,
-                });
-                const cropKey = `${preset}:${(r.w / r.h).toFixed(4)}`;
-                return (
-                  <SortableTile
-                    key={r.id}
-                    rect={r}
-                    pxRect={pxWithGap}
-                    index={idx}
-                    cropKey={cropKey}
-                  />
-                );
-              })}
-            </div>
-          </SortableContext>
-        </DndContext>
+      <div className="previewCanvas">
+        <div ref={stageWrapRef} className="previewStageWrap">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(e) => {
+              const overId = e.over?.id;
+              if (!overId) return;
+              reorder(String(e.active.id), String(overId));
+            }}
+          >
+            <SortableContext items={ids} strategy={rectSortingStrategy}>
+              <div
+                className="gridStage"
+                style={{
+                  width: `${containerWidthPx}px`,
+                  height: `${stageHeightPx}px`,
+                }}
+              >
+                {layout.rects.map((r, idx) => {
+                  const px: PxRect = {
+                    left: r.x * containerWidthPx,
+                    top: r.y * containerWidthPx,
+                    width: r.w * containerWidthPx,
+                    height: r.h * containerWidthPx,
+                  };
+                  const pxWithGap = applyGap({
+                    rect: r,
+                    px,
+                    gap,
+                    layoutHeightNorm: layout.normalizedHeight,
+                  });
+                  const cropKey = `${preset}:${(r.w / r.h).toFixed(4)}`;
+                  return (
+                    <SortableTile
+                      key={r.id}
+                      rect={r}
+                      pxRect={pxWithGap}
+                      index={idx}
+                      cropKey={cropKey}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
       </div>
     </div>
   );

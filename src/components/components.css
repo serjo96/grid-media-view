@@ -15,6 +15,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .uploadHint {
@@ -91,6 +92,11 @@
   padding: 10px;
   overflow: hidden;
   width: 100%;
+}
+
+.previewStageWrap {
+  width: 100%;
+  display: block;
 }
 
 .gridStage {
@@ -295,7 +301,7 @@
   background: rgba(34, 197, 94, 0.12);
   border-radius: 18px 18px 6px 18px;
   padding: 10px;
-  max-width: 440px;
+  max-width: min(440px, 100%);
   cursor: pointer;
   text-align: left;
 }
@@ -336,5 +342,39 @@
   font-size: 11px;
   color: rgba(255, 255, 255, 0.55);
   text-align: right;
+}
+
+@media (max-width: 520px) {
+  .previewCanvas {
+    padding: 6px;
+  }
+
+  .stackItem {
+    grid-template-columns: 56px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .stackActions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .range {
+    width: 160px;
+  }
+
+  .modalBody {
+    height: 52vh;
+    min-height: 240px;
+  }
+
+  .modalFooter {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .allGridsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
 }
 

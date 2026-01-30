@@ -85,11 +85,12 @@ function App() {
       </div>
 
       <div className="content">
-        <div className="panel">
-          <div className="panelHeader">
+        <details className="panel panelAccordion" open>
+          <summary className="panelHeader panelSummary" aria-label="Files panel">
             <div className="panelTitle">Files</div>
             <div className="panelHint">Drop images here</div>
-          </div>
+            <div className="accordionChevron" aria-hidden="true" />
+          </summary>
           <div className="panelBody">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
               <div style={{ fontWeight: 650, fontSize: 13 }}>Grids</div>
@@ -189,7 +190,7 @@ function App() {
               </>
             )}
           </div>
-        </div>
+        </details>
 
         <div className="panel">
           <div className="panelHeader">
