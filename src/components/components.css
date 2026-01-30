@@ -226,6 +226,8 @@
 }
 
 .gridCard {
+  display: block;
+  width: 100%;
   text-align: left;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.02);
@@ -298,6 +300,8 @@
 }
 
 .tgMsgBubble {
+  display: block;
+  width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(34, 197, 94, 0.12);
   border-radius: 18px 18px 6px 18px;

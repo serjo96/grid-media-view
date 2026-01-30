@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { PresetId } from "../domain/layout/presets";
 import { presetEngines } from "../domain/layout/presets";
 import type { GridState } from "../store/useAppStore";
@@ -33,7 +33,7 @@ export function StaticGridPreview(props: {
   const custom = grid.custom;
 
   const stageWrapRef = useRef<HTMLDivElement | null>(null);
-  const { width: availableWidth } = useElementSize(stageWrapRef);
+  const { width: availableWidth } = useElementSize(stageWrapRef, "StaticGridPreview.previewStageWrap");
 
   const layout = useMemo(() => {
     const layoutItems = items.map((i) => ({ id: i.id, aspect: i.aspect }));
@@ -50,9 +50,37 @@ export function StaticGridPreview(props: {
 
   const targetWidth = Math.floor(widthPx ?? getDefaultWidth(preset, custom.containerWidth));
   const safeAvail = availableWidth ? Math.max(0, Math.floor(availableWidth) - 2) : 0;
-  const containerWidthPx = Math.max(160, Math.min(maxWidthPx, Math.floor(safeAvail || targetWidth), targetWidth));
+  const viewport =
+    typeof document !== "undefined"
+      ? Math.floor(document.documentElement?.clientWidth || (typeof window !== "undefined" ? window.innerWidth : 0))
+      : 0;
+  const viewportClamp = viewport ? Math.max(0, viewport - 24) : Number.POSITIVE_INFINITY;
+  const containerWidthPx = Math.max(
+    160,
+    Math.min(maxWidthPx, Math.floor(safeAvail || targetWidth), targetWidth, viewportClamp),
+  );
   const stageHeightPx = Math.max(120, containerWidthPx * layout.normalizedHeight);
   const gap = getPresetGap(preset, custom.gap);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const debugEnabled = (import.meta as any).env?.DEV && (globalThis as any).__GRID_DEBUG === true;
+    if (!debugEnabled) return;
+
+    const el = stageWrapRef.current;
+    const rect = el?.getBoundingClientRect();
+
+    // eslint-disable-next-line no-console
+    console.groupCollapsed("[grid-debug] StaticGridPreview width calc");
+    // eslint-disable-next-line no-console
+    console.log({ preset, widthPx, maxWidthPx, targetWidth, availableWidth, containerWidthPx });
+    // eslint-disable-next-line no-console
+    console.log("wrapRect", rect ? { width: rect.width, height: rect.height } : null);
+    // eslint-disable-next-line no-console
+    console.log("documentElement.clientWidth", document?.documentElement?.clientWidth);
+    // eslint-disable-next-line no-console
+    console.groupEnd();
+  }, [availableWidth, containerWidthPx, maxWidthPx, preset, targetWidth, widthPx]);
 
   if (items.length === 0) {
     return <div className="uploadHint">Пусто</div>;

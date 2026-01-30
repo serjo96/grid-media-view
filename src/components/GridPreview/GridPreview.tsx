@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { DndContext, PointerSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useAppStore } from "../../store/useAppStore";
@@ -16,7 +16,7 @@ export function GridPreview() {
   const reorder = useAppStore((s) => s.reorder);
 
   const stageWrapRef = useRef<HTMLDivElement | null>(null);
-  const { width: availableWidth } = useElementSize(stageWrapRef);
+  const { width: availableWidth } = useElementSize(stageWrapRef, "GridPreview.previewStageWrap");
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -50,8 +50,33 @@ export function GridPreview() {
           ? 560
           : 460;
     const safeAvail = availableWidth ? Math.max(0, Math.floor(availableWidth) - 2) : 0;
-    return Math.max(160, Math.min(target, Math.floor(safeAvail || target)));
+    const viewport =
+      typeof document !== "undefined"
+        ? Math.floor(document.documentElement?.clientWidth || (typeof window !== "undefined" ? window.innerWidth : 0))
+        : 0;
+    const viewportClamp = viewport ? Math.max(0, viewport - 24) : Number.POSITIVE_INFINITY;
+    return Math.max(160, Math.min(target, Math.floor(safeAvail || target), viewportClamp));
   }, [availableWidth, custom.containerWidth, preset]);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const debugEnabled = (import.meta as any).env?.DEV && (globalThis as any).__GRID_DEBUG === true;
+    if (!debugEnabled) return;
+
+    const el = stageWrapRef.current;
+    const rect = el?.getBoundingClientRect();
+
+    // eslint-disable-next-line no-console
+    console.groupCollapsed("[grid-debug] GridPreview width calc");
+    // eslint-disable-next-line no-console
+    console.log({ preset, availableWidth, containerWidthPx });
+    // eslint-disable-next-line no-console
+    console.log("wrapRect", rect ? { width: rect.width, height: rect.height } : null);
+    // eslint-disable-next-line no-console
+    console.log("documentElement.clientWidth", document?.documentElement?.clientWidth);
+    // eslint-disable-next-line no-console
+    console.groupEnd();
+  }, [availableWidth, containerWidthPx, preset]);
 
   const gap = useMemo(() => {
     if (preset === "custom") return custom.gap;
