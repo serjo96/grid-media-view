@@ -1,11 +1,15 @@
-import type { RefObject } from "react";
-import { useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 
-export function useElementSize<T extends HTMLElement>(ref: RefObject<T | null>, debugLabel?: string) {
+export function useElementSize<T extends HTMLElement>(debugLabel?: string) {
+  const [node, setNode] = useState<T | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
 
+  const ref = useCallback((el: T | null) => {
+    setNode(el);
+  }, []);
+
   useLayoutEffect(() => {
-    const el = ref.current;
+    const el = node;
     if (!el) return;
 
     const debugEnabled =
@@ -60,8 +64,8 @@ export function useElementSize<T extends HTMLElement>(ref: RefObject<T | null>, 
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, [ref.current]);
+  }, [debugLabel, node]);
 
-  return size;
+  return { ...size, ref };
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { PresetId } from "../domain/layout/presets";
 import { presetEngines } from "../domain/layout/presets";
 import type { GridState } from "../store/useAppStore";
@@ -32,8 +32,16 @@ export function StaticGridPreview(props: {
   const items = preset === "tg" ? grid.items.slice(0, 10) : grid.items;
   const custom = grid.custom;
 
-  const stageWrapRef = useRef<HTMLDivElement | null>(null);
-  const { width: availableWidth } = useElementSize(stageWrapRef, "StaticGridPreview.previewStageWrap");
+  const stageWrapNodeRef = useRef<HTMLDivElement | null>(null);
+  const { ref: measureRef, width: availableWidth } =
+    useElementSize<HTMLDivElement>("StaticGridPreview.previewStageWrap");
+  const stageWrapRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      stageWrapNodeRef.current = el;
+      measureRef(el);
+    },
+    [measureRef],
+  );
 
   const layout = useMemo(() => {
     const layoutItems = items.map((i) => ({ id: i.id, aspect: i.aspect }));
@@ -67,7 +75,7 @@ export function StaticGridPreview(props: {
     const debugEnabled = (import.meta as any).env?.DEV && (globalThis as any).__GRID_DEBUG === true;
     if (!debugEnabled) return;
 
-    const el = stageWrapRef.current;
+    const el = stageWrapNodeRef.current;
     const rect = el?.getBoundingClientRect();
 
     // eslint-disable-next-line no-console

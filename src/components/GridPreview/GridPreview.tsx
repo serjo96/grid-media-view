@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
-import { DndContext, PointerSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useAppStore } from "../../store/useAppStore";
 import { presetEngines } from "../../domain/layout/presets";
@@ -15,12 +15,23 @@ export function GridPreview() {
   const items = activeGrid?.items ?? [];
   const reorder = useAppStore((s) => s.reorder);
 
-  const stageWrapRef = useRef<HTMLDivElement | null>(null);
-  const { width: availableWidth } = useElementSize(stageWrapRef, "GridPreview.previewStageWrap");
+  const stageWrapNodeRef = useRef<HTMLDivElement | null>(null);
+  const { ref: measureRef, width: availableWidth } = useElementSize<HTMLDivElement>("GridPreview.previewStageWrap");
+  const stageWrapRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      stageWrapNodeRef.current = el;
+      measureRef(el);
+    },
+    [measureRef],
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 4 },
+    }),
+    useSensor(TouchSensor, {
+      // Prevent accidental scroll; press briefly to start drag.
+      activationConstraint: { delay: 120, tolerance: 8 },
     }),
   );
 
@@ -63,7 +74,7 @@ export function GridPreview() {
     const debugEnabled = (import.meta as any).env?.DEV && (globalThis as any).__GRID_DEBUG === true;
     if (!debugEnabled) return;
 
-    const el = stageWrapRef.current;
+    const el = stageWrapNodeRef.current;
     const rect = el?.getBoundingClientRect();
 
     // eslint-disable-next-line no-console
