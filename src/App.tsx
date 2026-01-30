@@ -1,10 +1,13 @@
 import "./App.css";
 import "./components/components.css";
+import { useMemo, useState } from "react";
 import { UploadArea } from "./components/UploadArea";
 import { StackList } from "./components/StackList";
 import { GridPreview } from "./components/GridPreview/GridPreview";
 import { CropModal } from "./components/CropModal";
 import { useAppStore } from "./store/useAppStore";
+import { TgChatView } from "./components/views/TgChatView";
+import { AllGridsView } from "./components/views/AllGridsView";
 
 function App() {
   const grids = useAppStore((s) => s.grids);
@@ -12,15 +15,27 @@ function App() {
   const createGrid = useAppStore((s) => s.createGrid);
   const selectGrid = useAppStore((s) => s.selectGrid);
 
-  const activeGrid = useAppStore(
-    (s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0],
-  );
+  const [viewMode, setViewMode] = useState<"single" | "tgChat" | "allGrids">("single");
+
+  const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
 
   const preset = activeGrid?.preset ?? "tg";
   const setPreset = useAppStore((s) => s.setPreset);
   const clear = useAppStore((s) => s.clear);
   const custom = activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 };
   const setCustom = useAppStore((s) => s.setCustom);
+
+  const previewTitle = useMemo(() => {
+    if (viewMode === "tgChat") return "Telegram chat";
+    if (viewMode === "allGrids") return "All grids";
+    return "Preview";
+  }, [viewMode]);
+
+  const previewHint = useMemo(() => {
+    if (viewMode === "tgChat") return "Scroll like a chat; each message is a grid preview";
+    if (viewMode === "allGrids") return "All grids at once (click to open)";
+    return "Grid/album layout + crop + reorder";
+  }, [viewMode]);
 
   return (
     <div className="app">
@@ -45,6 +60,21 @@ function App() {
                 <option value="custom">Custom</option>
               </select>
             </label>
+
+            <label className="pill">
+              <span style={{ fontSize: 12, color: "var(--muted)" }}>View</span>
+              <select
+                className="select"
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
+                aria-label="View mode"
+              >
+                <option value="single">Active grid</option>
+                <option value="tgChat">TG chat</option>
+                <option value="allGrids">All grids</option>
+              </select>
+            </label>
+
             <button className="btn btnDanger" type="button" onClick={clear}>
               Clear
             </button>
@@ -159,11 +189,31 @@ function App() {
 
         <div className="panel">
           <div className="panelHeader">
-            <div className="panelTitle">Preview</div>
-            <div className="panelHint">Grid/album layout + crop + reorder</div>
+            <div className="panelTitle">{previewTitle}</div>
+            <div className="panelHint">{previewHint}</div>
           </div>
           <div className="panelBody">
-            <GridPreview />
+            {viewMode === "single" && <GridPreview />}
+            {viewMode === "tgChat" && (
+              <TgChatView
+                grids={grids}
+                activeGridId={activeGridId}
+                onOpenGrid={(id) => {
+                  selectGrid(id);
+                  setViewMode("single");
+                }}
+              />
+            )}
+            {viewMode === "allGrids" && (
+              <AllGridsView
+                grids={grids}
+                activeGridId={activeGridId}
+                onOpenGrid={(id) => {
+                  selectGrid(id);
+                  setViewMode("single");
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

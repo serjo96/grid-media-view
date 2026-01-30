@@ -211,3 +211,130 @@
   width: 220px;
 }
 
+/* --- View modes --- */
+
+.allGridsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.gridCard {
+  text-align: left;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 14px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.gridCard:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.gridCardActive {
+  border-color: rgba(124, 92, 255, 0.55);
+  background: rgba(124, 92, 255, 0.08);
+}
+
+.gridCardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.gridCardTitle {
+  font-size: 13px;
+  font-weight: 650;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gridCardMeta {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.gridCardTag {
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 4px 6px;
+}
+
+.tgChatWindow {
+  border: 1px solid var(--border);
+  background: radial-gradient(1200px 600px at 40% 20%, rgba(124, 92, 255, 0.10), transparent 60%),
+    rgba(0, 0, 0, 0.20);
+  border-radius: 16px;
+  padding: 12px;
+  max-height: 72vh;
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+}
+
+.tgMsgRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tgMsgRowActive .tgMsgBubble {
+  outline: 2px solid rgba(124, 92, 255, 0.35);
+}
+
+.tgMsgBubble {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(34, 197, 94, 0.12);
+  border-radius: 18px 18px 6px 18px;
+  padding: 10px;
+  max-width: 440px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tgMsgBubble:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.tgMsgHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.tgMsgTitle {
+  font-size: 12px;
+  font-weight: 650;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tgMsgMeta {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.tgMsgBody .previewCanvas {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.tgMsgFooter {
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: right;
+}
+
