@@ -1,13 +1,13 @@
 import type { LayoutEngine, LayoutRect } from "../LayoutEngine";
 
 /**
- * Instagram profile grid preview: 3 columns, tiles are 3:4 (w:h).
+ * Instagram profile grid preview: 3 columns, tiles are 1:1 (square thumbnails).
  * We model a viewport of width=1, height depends on rows.
  */
 export const instagramProfileGrid: LayoutEngine = ({ items }) => {
   const cols = 3;
   const tileW = 1 / cols;
-  const tileH = tileW * (4 / 3);
+  const tileH = tileW;
   const rows = Math.ceil(items.length / cols) || 1;
   const totalH = rows * tileH;
 

@@ -1,13 +1,18 @@
 import { create } from "zustand";
 import type { CropAreaNorm } from "../domain/crop/cropTypes";
 import { clampTelegramCount, type PresetId } from "../domain/layout/presets";
+import type { InstagramMedia, InstagramProfile } from "../domain/instagram/instagramApi";
+import { fetchInstagramMedia, fetchInstagramProfile } from "../domain/instagram/instagramApi";
 
 export type MediaKind = "image" | "video";
+
+export type MediaSource = "local" | "instagram";
 
 export type MediaItem = {
   id: string;
   fileName: string;
   kind: MediaKind;
+  source: MediaSource;
   /** URL for the original file (image/video) */
   objectUrl: string;
   /** URL for preview image (image itself or extracted video frame) */
@@ -15,6 +20,9 @@ export type MediaItem = {
   width: number;
   height: number;
   aspect: number;
+  remoteId?: string;
+  permalink?: string;
+  timestamp?: string;
 };
 
 export type CustomPreset = {
@@ -47,12 +55,27 @@ type AppState = {
   activeGridId: string;
   cropModal: CropModalState;
 
+  instagram: {
+    token: string;
+    profile: InstagramProfile | null;
+    media: InstagramMedia[];
+    status: "idle" | "loading" | "connected" | "error";
+    error: string | null;
+    lastFetchedAt: number | null;
+  };
+
   createGrid: () => void;
   selectGrid: (gridId: string) => void;
   renameGrid: (gridId: string, name: string) => void;
 
   setPreset: (preset: PresetId) => void;
   setCustom: (patch: Partial<CustomPreset>) => void;
+
+  setInstagramToken: (token: string) => void;
+  connectInstagram: (token?: string) => Promise<void>;
+  refreshInstagram: () => Promise<void>;
+  disconnectInstagram: () => void;
+  applyInstagramGridToActive: () => void;
 
   addFiles: (files: FileList | File[]) => Promise<void>;
   removeItem: (id: string) => void;
@@ -148,6 +171,7 @@ function createEmptyGrid(args: { name: string; preset: PresetId; custom: CustomP
 }
 
 function revokeItemUrls(it: MediaItem) {
+  if (it.source !== "local") return;
   URL.revokeObjectURL(it.objectUrl);
   if (it.previewUrl !== it.objectUrl) URL.revokeObjectURL(it.previewUrl);
 }
@@ -155,10 +179,67 @@ function revokeItemUrls(it: MediaItem) {
 const initialCustom: CustomPreset = { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 };
 const initialGrid: GridState = createEmptyGrid({ name: "Grid 1", preset: "tg", custom: initialCustom });
 
+const IG_TOKEN_STORAGE_KEY = "gridTest:instagramAccessToken";
+
+function loadInstagramTokenFromStorage() {
+  try {
+    return localStorage.getItem(IG_TOKEN_STORAGE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function saveInstagramTokenToStorage(token: string) {
+  try {
+    const t = token.trim();
+    if (!t) {
+      localStorage.removeItem(IG_TOKEN_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(IG_TOKEN_STORAGE_KEY, t);
+  } catch {
+    // ignore
+  }
+}
+
+function instagramMediaToGridItems(media: InstagramMedia[]): MediaItem[] {
+  // Profile grid thumbnails are effectively squares; we use a safe default size.
+  const defaultW = 1080;
+  const defaultH = 1080;
+
+  return media.map((m) => {
+    const kind: MediaKind = m.media_type === "VIDEO" ? "video" : "image";
+    const previewUrl = m.thumbnail_url ?? m.media_url;
+    return {
+      id: makeId(),
+      fileName: `IG ${m.id}`,
+      kind,
+      source: "instagram",
+      objectUrl: m.media_url,
+      previewUrl,
+      width: defaultW,
+      height: defaultH,
+      aspect: defaultW / defaultH,
+      remoteId: m.id,
+      permalink: m.permalink,
+      timestamp: m.timestamp,
+    };
+  });
+}
+
 export const useAppStore = create<AppState>((set, get) => ({
   grids: [initialGrid],
   activeGridId: initialGrid.id,
   cropModal: { open: false, gridId: null, itemId: null, cropKey: null, targetAspect: null },
+
+  instagram: {
+    token: typeof window !== "undefined" ? loadInstagramTokenFromStorage() : "",
+    profile: null,
+    media: [],
+    status: "idle",
+    error: null,
+    lastFetchedAt: null,
+  },
 
   createGrid: () => {
     const s = get();
@@ -211,6 +292,94 @@ export const useAppStore = create<AppState>((set, get) => ({
       }),
     })),
 
+  setInstagramToken: (token) => {
+    saveInstagramTokenToStorage(token);
+    set((s) => ({ instagram: { ...s.instagram, token: token.trim() } }));
+  },
+
+  connectInstagram: async (tokenMaybe) => {
+    const token = (tokenMaybe ?? get().instagram.token).trim();
+    saveInstagramTokenToStorage(token);
+    set((s) => ({
+      instagram: { ...s.instagram, token, status: "loading", error: null },
+    }));
+
+    try {
+      const [profile, media] = await Promise.all([
+        fetchInstagramProfile({ accessToken: token }),
+        fetchInstagramMedia({ accessToken: token, limit: 60 }),
+      ]);
+      set((s) => ({
+        instagram: {
+          ...s.instagram,
+          token,
+          profile,
+          media,
+          status: "connected",
+          error: null,
+          lastFetchedAt: Date.now(),
+        },
+      }));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to connect Instagram";
+      set((s) => ({
+        instagram: { ...s.instagram, token, status: "error", error: msg },
+      }));
+    }
+  },
+
+  refreshInstagram: async () => {
+    const { token } = get().instagram;
+    if (!token.trim()) return;
+    set((s) => ({ instagram: { ...s.instagram, status: "loading", error: null } }));
+    try {
+      const media = await fetchInstagramMedia({ accessToken: token, limit: 60 });
+      set((s) => ({
+        instagram: {
+          ...s.instagram,
+          media,
+          status: "connected",
+          error: null,
+          lastFetchedAt: Date.now(),
+        },
+      }));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to refresh Instagram";
+      set((s) => ({ instagram: { ...s.instagram, status: "error", error: msg } }));
+    }
+  },
+
+  disconnectInstagram: () => {
+    saveInstagramTokenToStorage("");
+    set((s) => ({
+      instagram: {
+        ...s.instagram,
+        token: "",
+        profile: null,
+        media: [],
+        status: "idle",
+        error: null,
+        lastFetchedAt: null,
+      },
+    }));
+  },
+
+  applyInstagramGridToActive: () => {
+    const s0 = get();
+    const ig = s0.instagram;
+    if (ig.media.length === 0) return;
+
+    // Revoke existing local URLs to avoid leaks, then replace with IG items.
+    const grid0 = s0.grids.find((g) => g.id === s0.activeGridId) ?? s0.grids[0];
+    for (const it of grid0.items) revokeItemUrls(it);
+
+    const nextItems = instagramMediaToGridItems(ig.media);
+    set((s) => ({
+      grids: s.grids.map((g) => (g.id === s.activeGridId ? { ...g, items: nextItems, crops: {} } : g)),
+      cropModal: { open: false, gridId: null, itemId: null, cropKey: null, targetAspect: null },
+    }));
+  },
+
   addFiles: async (filesLike) => {
     const files = Array.from(filesLike);
     if (files.length === 0) return;
@@ -234,6 +403,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             id: makeId(),
             fileName: f.name,
             kind: "video",
+            source: "local",
             objectUrl,
             previewUrl: v.previewUrl,
             width: v.width,
@@ -246,6 +416,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             id: makeId(),
             fileName: f.name,
             kind: "image",
+            source: "local",
             objectUrl,
             previewUrl: objectUrl,
             width: meta.width,

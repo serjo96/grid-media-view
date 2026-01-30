@@ -8,6 +8,8 @@ import { CropModal } from "./components/CropModal";
 import { useAppStore } from "./store/useAppStore";
 import { TgChatView } from "./components/views/TgChatView";
 import { AllGridsView } from "./components/views/AllGridsView";
+import { InstagramPanel } from "./components/InstagramPanel";
+import { InstagramView } from "./components/views/InstagramView";
 
 function App() {
   const grids = useAppStore((s) => s.grids);
@@ -124,6 +126,8 @@ function App() {
             </div>
 
             <div style={{ height: 14 }} />
+            <InstagramPanel />
+            {preset === "inst" && <div style={{ height: 14 }} />}
             <UploadArea />
             <div style={{ height: 12 }} />
             <StackList />
@@ -193,7 +197,7 @@ function App() {
             <div className="panelHint">{previewHint}</div>
           </div>
           <div className="panelBody">
-            {viewMode === "single" && <GridPreview />}
+            {viewMode === "single" && (preset === "inst" ? <InstagramView /> : <GridPreview />)}
             {viewMode === "tgChat" && (
               <TgChatView
                 grids={grids}

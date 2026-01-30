@@ -28,7 +28,10 @@ export function StackList() {
 
           <div className="stackMeta">
             <div className="stackName">
-              {idx + 1}. {it.fileName} {it.kind === "video" ? "(video)" : ""}
+              {idx + 1}. {it.fileName} {it.kind === "video" ? "(video)" : ""}{" "}
+              <span style={{ color: "var(--muted)", fontSize: 12 }}>
+                [{it.source === "instagram" ? "IG" : "local"}]
+              </span>
             </div>
             <div className="stackSub">
               {it.width}×{it.height} • {fmtAspect(it.aspect)}
