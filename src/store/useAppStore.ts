@@ -1,8 +1,11 @@
 import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
 import type { CropAreaNorm } from "../domain/crop/cropTypes";
 import { clampTelegramCount, type PresetId } from "../domain/layout/presets";
 import type { InstagramMedia, InstagramProfile } from "../domain/instagram/instagramApi";
 import { fetchInstagramMedia, fetchInstagramProfile } from "../domain/instagram/instagramApi";
+import { loadGridsFromLocal, peekLocalSnapshotInfo, persistGridsLocally } from "../persistence/gridsPersistence";
 
 export type MediaKind = "image" | "video";
 
@@ -54,6 +57,11 @@ type AppState = {
   grids: GridState[];
   activeGridId: string;
   cropModal: CropModalState;
+  persistence: {
+    hydrating: boolean;
+    snapshot: "unknown" | "none" | "present";
+    error: string | null;
+  };
 
   instagram: {
     token: string;
@@ -228,10 +236,12 @@ function instagramMediaToGridItems(media: InstagramMedia[]): MediaItem[] {
   });
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>()(
+  subscribeWithSelector((set, get) => ({
   grids: [initialGrid],
   activeGridId: initialGrid.id,
   cropModal: { open: false, gridId: null, itemId: null, cropKey: null, targetAspect: null },
+  persistence: { hydrating: false, snapshot: "unknown", error: null },
 
   instagram: {
     token: typeof window !== "undefined" ? loadInstagramTokenFromStorage() : "",
@@ -568,5 +578,93 @@ export const useAppStore = create<AppState>((set, get) => ({
         };
       }),
     })),
-}));
+  })),
+);
+
+function revokeAllLocalUrls(grids: GridState[]) {
+  for (const g of grids) {
+    for (const it of g.items) revokeItemUrls(it);
+  }
+}
+
+function closeCropModalState(): CropModalState {
+  return { open: false, gridId: null, itemId: null, cropKey: null, targetAspect: null };
+}
+
+let persistenceReady = false;
+let persistTimer: ReturnType<typeof setTimeout> | null = null;
+let persistRunning = false;
+let persistPending = false;
+
+async function flushPersist() {
+  if (!persistenceReady) return;
+  if (persistRunning) {
+    persistPending = true;
+    return;
+  }
+  persistRunning = true;
+  try {
+    const s = useAppStore.getState();
+    await persistGridsLocally({ grids: s.grids, activeGridId: s.activeGridId });
+  } finally {
+    persistRunning = false;
+    if (persistPending) {
+      persistPending = false;
+      void flushPersist();
+    }
+  }
+}
+
+function schedulePersist() {
+  if (!persistenceReady) return;
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    void flushPersist();
+  }, 500);
+}
+
+async function initLocalPersistence() {
+  try {
+    const info = await peekLocalSnapshotInfo();
+    useAppStore.setState((s) => ({
+      persistence: {
+        ...s.persistence,
+        snapshot: info.hasSnapshot ? "present" : "none",
+        hydrating: info.hasSnapshot && info.totalItems > 0,
+        error: null,
+      },
+    }));
+
+    // Hydrate from IndexedDB (if any), then enable autosave.
+    const loaded = info.hasSnapshot ? await loadGridsFromLocal() : null;
+    if (loaded) {
+      const current = useAppStore.getState();
+      revokeAllLocalUrls(current.grids);
+      useAppStore.setState((s) => ({
+        grids: loaded.grids,
+        activeGridId: loaded.activeGridId,
+        cropModal: closeCropModalState(),
+        persistence: { ...s.persistence, hydrating: false, error: null },
+      }));
+    } else {
+      useAppStore.setState((s) => ({ persistence: { ...s.persistence, hydrating: false } }));
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Failed to load local snapshot";
+    useAppStore.setState((s) => ({ persistence: { ...s.persistence, hydrating: false, error: msg } }));
+  } finally {
+    persistenceReady = true;
+  }
+}
+
+if (typeof window !== "undefined") {
+  void initLocalPersistence();
+
+  useAppStore.subscribe(
+    (s) => ({ grids: s.grids, activeGridId: s.activeGridId }),
+    () => schedulePersist(),
+    { equalityFn: shallow },
+  );
+}
 

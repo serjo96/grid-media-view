@@ -17,6 +17,7 @@ function App() {
   const createGrid = useAppStore((s) => s.createGrid);
   const selectGrid = useAppStore((s) => s.selectGrid);
   const replaceItemFile = useAppStore((s) => s.replaceItemFile);
+  const hydrating = useAppStore((s) => s.persistence.hydrating);
 
   const [viewMode, setViewMode] = useState<"single" | "tgChat" | "allGrids">("single");
   const [replaceMode, setReplaceMode] = useState(false);
@@ -75,6 +76,15 @@ function App() {
 
   return (
     <div className="app">
+      {hydrating && (
+        <div className="appLoaderOverlay" role="status" aria-live="polite" aria-label="Loading saved grids">
+          <div className="appLoaderCard">
+            <div className="appSpinner" aria-hidden="true" />
+            <div style={{ fontWeight: 650, fontSize: 13 }}>Восстанавливаем сетки…</div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>Читаем файлы из локального хранилища</div>
+          </div>
+        </div>
+      )}
       <div className="topbar">
         <div className="topbarInner">
           <div className="brand">
