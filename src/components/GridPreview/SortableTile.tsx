@@ -11,8 +11,11 @@ export function SortableTile(props: {
   pxRect: { left: number; top: number; width: number; height: number };
   index: number;
   cropKey: string;
+  replaceMode: boolean;
+  isReplaceSelected: boolean;
+  onRequestReplace: (itemId: string) => void;
 }) {
-  const { rect, pxRect, index, cropKey } = props;
+  const { rect, pxRect, index, cropKey, replaceMode, isReplaceSelected, onRequestReplace } = props;
 
   const item = useAppStore(
     (s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.items.find((i) => i.id === rect.id) ?? null,
@@ -24,7 +27,7 @@ export function SortableTile(props: {
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: rect.id,
-    disabled: !item,
+    disabled: !item || replaceMode,
   });
 
   const style = useMemo(() => {
@@ -53,7 +56,7 @@ export function SortableTile(props: {
   return (
     <div
       ref={setNodeRef}
-      className="tile"
+      className={`tile ${replaceMode ? "tileReplaceMode" : ""} ${isReplaceSelected ? "tileSelected" : ""}`}
       style={{
         ...style,
         borderTopLeftRadius: rect.round?.tl ? 18 : 12,
@@ -61,8 +64,8 @@ export function SortableTile(props: {
         borderBottomLeftRadius: rect.round?.bl ? 18 : 12,
         borderBottomRightRadius: rect.round?.br ? 18 : 12,
       }}
-      {...attributes}
-      {...listeners}
+      {...(!replaceMode ? attributes : {})}
+      {...(!replaceMode ? listeners : {})}
       aria-label="Tile"
     >
       <div className="tileInner">
@@ -82,18 +85,42 @@ export function SortableTile(props: {
         )}
         <div className="tileOverlay">
           <div className="tileBadge">#{index + 1}</div>
-          {item && (
-            <button
-              className="tileBtn"
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                openCrop({ itemId: rect.id, cropKey, targetAspect });
-              }}
-            >
-              Crop
-            </button>
+          {item && replaceMode && (
+            <div className="tileActions">
+              <button
+                className="tileActionBtn tileActionBtnIcon"
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRequestReplace(rect.id);
+                }}
+                aria-label={`Replace ${item.fileName}`}
+                title="Replace"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M4 20h4l10.5-10.5a2.121 2.121 0 0 0 0-3L16.5 4.5a2.121 2.121 0 0 0-3 0L3 15v5Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M13.5 6.5l4 4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              <button
+                className="tileActionBtn"
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openCrop({ itemId: rect.id, cropKey, targetAspect });
+                }}
+              >
+                Crop
+              </button>
+            </div>
           )}
         </div>
       </div>

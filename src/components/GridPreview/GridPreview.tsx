@@ -8,7 +8,12 @@ import { SortableTile } from "./SortableTile";
 import type { PxRect } from "./layoutHelpers";
 import { applyGap, buildCustomGridRects } from "./layoutHelpers";
 
-export function GridPreview() {
+export function GridPreview(props: {
+  replaceMode: boolean;
+  replaceTargetId: string | null;
+  onRequestReplace: (itemId: string) => void;
+}) {
+  const { replaceMode, replaceTargetId, onRequestReplace } = props;
   const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
   const preset = activeGrid?.preset ?? "tg";
   const custom = activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 };
@@ -119,6 +124,7 @@ export function GridPreview() {
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={(e) => {
+              if (replaceMode) return;
               const overId = e.over?.id;
               if (!overId) return;
               reorder(String(e.active.id), String(overId));
@@ -153,6 +159,9 @@ export function GridPreview() {
                       pxRect={pxWithGap}
                       index={idx}
                       cropKey={cropKey}
+                      replaceMode={replaceMode}
+                      isReplaceSelected={replaceMode && replaceTargetId === r.id}
+                      onRequestReplace={onRequestReplace}
                     />
                   );
                 })}

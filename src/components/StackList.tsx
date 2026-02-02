@@ -6,7 +6,12 @@ function fmtAspect(a: number) {
   return `${a.toFixed(3)} (w/h)`;
 }
 
-export function StackList() {
+export function StackList(props: {
+  replaceMode: boolean;
+  replaceTargetId: string | null;
+  onRequestReplace: (itemId: string) => void;
+}) {
+  const { replaceMode, replaceTargetId, onRequestReplace } = props;
   const items = useAppStore(
     (s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.items ?? [],
   );
@@ -21,7 +26,10 @@ export function StackList() {
   return (
     <div className="stack">
       {items.map((it, idx) => (
-        <div key={it.id} className="stackItem">
+        <div
+          key={it.id}
+          className={`stackItem ${replaceMode && replaceTargetId === it.id ? "stackItemSelected" : ""}`}
+        >
           <div className="thumb">
             <img src={it.previewUrl} alt={it.fileName} draggable={false} />
           </div>
@@ -32,6 +40,11 @@ export function StackList() {
               <span style={{ color: "var(--muted)", fontSize: 12 }}>
                 [{it.source === "instagram" ? "IG" : "local"}]
               </span>
+              {replaceMode && replaceTargetId === it.id && (
+                <span className="stackTag" style={{ marginLeft: 8 }}>
+                  selected
+                </span>
+              )}
             </div>
             <div className="stackSub">
               {it.width}×{it.height} • {fmtAspect(it.aspect)}
@@ -39,6 +52,22 @@ export function StackList() {
           </div>
 
           <div className="stackActions">
+            {replaceMode && (
+              <button className="btn" type="button" onClick={() => onRequestReplace(it.id)} aria-label={`Replace ${it.fileName}`}>
+                <span className="btnIcon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M4 20h4l10.5-10.5a2.121 2.121 0 0 0 0-3L16.5 4.5a2.121 2.121 0 0 0-3 0L3 15v5Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinejoin="round"
+                    />
+                    <path d="M13.5 6.5l4 4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                Replace
+              </button>
+            )}
             <button className="btn btnDanger" type="button" onClick={() => removeItem(it.id)}>
               Remove
             </button>

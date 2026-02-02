@@ -26,7 +26,12 @@ function mediaToItems(media: InstagramMedia[]): MediaItem[] {
   });
 }
 
-export function InstagramView() {
+export function InstagramView(props: {
+  replaceMode: boolean;
+  replaceTargetId: string | null;
+  onRequestReplace: (itemId: string) => void;
+}) {
+  const { replaceMode, replaceTargetId, onRequestReplace } = props;
   const ig = useAppStore((s) => s.instagram);
   const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
 
@@ -34,13 +39,13 @@ export function InstagramView() {
     return {
       id: "ig_current",
       name: "Instagram current",
-      createdAt: Date.now(),
+      createdAt: ig.lastFetchedAt ?? 0,
       preset: "inst",
       custom: activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 },
       items: mediaToItems(ig.media),
       crops: {},
     };
-  }, [activeGrid?.custom, ig.media]);
+  }, [activeGrid?.custom, ig.lastFetchedAt, ig.media]);
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
@@ -58,7 +63,7 @@ export function InstagramView() {
         <div className="uploadHint" style={{ marginBottom: 10 }}>
           Это ваш активный грид: можно драгать, кропать и добавлять локальные файлы даже без авторизации.
         </div>
-        <GridPreview />
+        <GridPreview replaceMode={replaceMode} replaceTargetId={replaceTargetId} onRequestReplace={onRequestReplace} />
       </div>
     </div>
   );

@@ -172,6 +172,34 @@
   border-color: rgba(239, 68, 68, 0.55);
 }
 
+.btnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.btnToggleActive {
+  border-color: rgba(124, 92, 255, 0.55);
+  background: rgba(124, 92, 255, 0.12);
+}
+
+.btnToggleActive:hover {
+  border-color: rgba(124, 92, 255, 0.75);
+}
+
+.btnGhost {
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.btnGhost:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
 @media (max-width: 980px) {
   .content {
     grid-template-columns: 1fr;

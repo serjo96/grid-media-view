@@ -1,6 +1,6 @@
 import "./App.css";
 import "./components/components.css";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { UploadArea } from "./components/UploadArea";
 import { StackList } from "./components/StackList";
 import { GridPreview } from "./components/GridPreview/GridPreview";
@@ -16,8 +16,13 @@ function App() {
   const activeGridId = useAppStore((s) => s.activeGridId);
   const createGrid = useAppStore((s) => s.createGrid);
   const selectGrid = useAppStore((s) => s.selectGrid);
+  const replaceItemFile = useAppStore((s) => s.replaceItemFile);
 
   const [viewMode, setViewMode] = useState<"single" | "tgChat" | "allGrids">("single");
+  const [replaceMode, setReplaceMode] = useState(false);
+  const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
+  const replaceTargetIdRef = useRef<string | null>(null);
+  const replaceInputRef = useRef<HTMLInputElement | null>(null);
 
   const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
 
@@ -38,6 +43,35 @@ function App() {
     if (viewMode === "allGrids") return "All grids at once (click to open)";
     return "Grid/album layout + crop + reorder";
   }, [viewMode]);
+
+  const effectiveReplaceTargetId = useMemo(() => {
+    if (!replaceMode) return null;
+    if (!replaceTargetId) return null;
+    const exists = (activeGrid?.items ?? []).some((it) => it.id === replaceTargetId);
+    return exists ? replaceTargetId : null;
+  }, [activeGrid?.items, replaceMode, replaceTargetId]);
+
+  useEffect(() => {
+    // Keep a ref for the hidden <input> handler (avoid relying on async state).
+    replaceTargetIdRef.current = effectiveReplaceTargetId;
+  }, [effectiveReplaceTargetId]);
+
+  const replaceTargetLabel = useMemo(() => {
+    if (!replaceMode) return null;
+    if (!effectiveReplaceTargetId) return "Select a photo to replace";
+    const idx = (activeGrid?.items ?? []).findIndex((it) => it.id === effectiveReplaceTargetId);
+    const it = idx >= 0 ? (activeGrid?.items ?? [])[idx] : null;
+    if (!it) return "Select a photo to replace";
+    return `Replacing #${idx + 1}: ${it.fileName}`;
+  }, [activeGrid?.items, effectiveReplaceTargetId, replaceMode]);
+
+  const requestReplace = (itemId: string) => {
+    if (!replaceMode) return;
+    setReplaceTargetId(itemId);
+    replaceTargetIdRef.current = itemId;
+    // Defer click to ensure state updates don't race with the input handler.
+    queueMicrotask(() => replaceInputRef.current?.click());
+  };
 
   return (
     <div className="app">
@@ -76,6 +110,58 @@ function App() {
                 <option value="allGrids">All grids</option>
               </select>
             </label>
+
+            <button
+              className={`btn ${replaceMode ? "btnToggleActive" : ""}`}
+              type="button"
+              onClick={() => {
+                setReplaceMode((v) => !v);
+                setReplaceTargetId(null);
+              }}
+              aria-pressed={replaceMode}
+              aria-label="Toggle replace mode"
+              title="Replace mode (like Telegram)"
+            >
+              <span className="btnIcon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 20h4l10.5-10.5a2.121 2.121 0 0 0 0-3L16.5 4.5a2.121 2.121 0 0 0-3 0L3 15v5Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M13.5 6.5l4 4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                </svg>
+              </span>
+              Replace
+            </button>
+
+            {replaceMode && (
+              <div className="pill" style={{ gap: 10, maxWidth: 360 }}>
+                <span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>Edit</span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {replaceTargetLabel}
+                </span>
+                {effectiveReplaceTargetId && (
+                  <button
+                    className="btn btnGhost"
+                    type="button"
+                    onClick={() => setReplaceTargetId(null)}
+                    aria-label="Clear replace target"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            )}
 
             <button className="btn btnDanger" type="button" onClick={clear}>
               Clear
@@ -131,7 +217,11 @@ function App() {
             {preset === "inst" && <div style={{ height: 14 }} />}
             <UploadArea />
             <div style={{ height: 12 }} />
-            <StackList />
+            <StackList
+              replaceMode={replaceMode}
+              replaceTargetId={effectiveReplaceTargetId}
+              onRequestReplace={requestReplace}
+            />
 
             {preset === "custom" && (
               <>
@@ -198,7 +288,16 @@ function App() {
             <div className="panelHint">{previewHint}</div>
           </div>
           <div className="panelBody">
-            {viewMode === "single" && (preset === "inst" ? <InstagramView /> : <GridPreview />)}
+            {viewMode === "single" &&
+              (preset === "inst" ? (
+                <InstagramView
+                  replaceMode={replaceMode}
+                  replaceTargetId={effectiveReplaceTargetId}
+                  onRequestReplace={requestReplace}
+                />
+              ) : (
+                <GridPreview replaceMode={replaceMode} replaceTargetId={effectiveReplaceTargetId} onRequestReplace={requestReplace} />
+              ))}
             {viewMode === "tgChat" && (
               <TgChatView
                 grids={grids}
@@ -219,9 +318,26 @@ function App() {
                 }}
               />
             )}
+            <div className="mobileBottomSpacer" aria-hidden="true" />
           </div>
         </div>
       </div>
+
+      <input
+        ref={replaceInputRef}
+        type="file"
+        accept="image/*,video/*"
+        style={{ display: "none" }}
+        onChange={async (e) => {
+          const id = replaceTargetIdRef.current;
+          const f = e.target.files?.[0];
+          if (id && f) {
+            await replaceItemFile({ itemId: id, file: f });
+            setReplaceTargetId(null);
+          }
+          e.target.value = "";
+        }}
+      />
 
       <CropModal />
     </div>

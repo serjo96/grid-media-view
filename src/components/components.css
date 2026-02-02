@@ -5,6 +5,10 @@
   padding: 14px;
 }
 
+.uploadArea {
+  position: relative;
+}
+
 .uploadDropActive {
   border-color: rgba(124, 92, 255, 0.8);
   box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
@@ -21,6 +25,22 @@
 .uploadHint {
   font-size: 12px;
   color: var(--muted);
+}
+
+.uploadFixedBar {
+  display: none;
+}
+
+.uploadFixedBtn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+.uploadFixedHint {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.25;
 }
 
 .stack {
@@ -79,6 +99,23 @@
   gap: 8px;
 }
 
+.stackItemSelected {
+  border-color: rgba(124, 92, 255, 0.55);
+  background: rgba(124, 92, 255, 0.08);
+}
+
+.stackTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  background: rgba(124, 92, 255, 0.10);
+  border-radius: 10px;
+  padding: 2px 6px;
+}
+
 .previewWrap {
   display: flex;
   flex-direction: column;
@@ -114,6 +151,14 @@
   user-select: none;
 }
 
+.tileReplaceMode {
+  touch-action: manipulation;
+}
+
+.tileReplaceMode .tileOverlay {
+  opacity: 1;
+}
+
 .tileInner {
   position: relative;
   width: 100%;
@@ -144,10 +189,17 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.tileBtn {
+.tileActions {
   position: absolute;
   right: 8px;
   top: 8px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.tileActionBtn {
   font-size: 11px;
   padding: 5px 8px;
   border-radius: 10px;
@@ -155,8 +207,27 @@
   background: rgba(0, 0, 0, 0.55);
   color: var(--text);
   cursor: pointer;
-  pointer-events: auto;
   touch-action: manipulation;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tileActionBtnIcon {
+  padding: 5px;
+  width: 30px;
+  justify-content: center;
+}
+
+.tileSelected {
+  outline: 2px solid rgba(124, 92, 255, 0.55);
+  outline-offset: 2px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .tileOverlay {
+    opacity: 1;
+  }
 }
 
 .modalBackdrop {
@@ -384,6 +455,29 @@
 
   .allGridsGrid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  /* Mobile UX: keep upload button fixed at the bottom */
+  .uploadActions {
+    display: none !important;
+  }
+
+  .uploadFixedBar {
+    display: grid;
+    gap: 6px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(10, 11, 16, 0.7);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+  }
+
+  .mobileBottomSpacer {
+    height: calc(86px + env(safe-area-inset-bottom));
   }
 }
 

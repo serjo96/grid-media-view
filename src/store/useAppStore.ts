@@ -78,6 +78,7 @@ type AppState = {
   applyInstagramGridToActive: () => void;
 
   addFiles: (files: FileList | File[]) => Promise<void>;
+  replaceItemFile: (args: { itemId: string; file: File }) => Promise<void>;
   removeItem: (id: string) => void;
   clear: () => void;
   reorder: (activeId: string, overId: string) => void;
@@ -433,6 +434,72 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({
       grids: s.grids.map((g) => (g.id === s.activeGridId ? { ...g, items: insertAtEnd(g.items, created) } : g)),
     }));
+  },
+
+  replaceItemFile: async ({ itemId, file }) => {
+    if (!file) return;
+
+    const s0 = get();
+    const grid0 = s0.grids.find((g) => g.id === s0.activeGridId) ?? s0.grids[0];
+    const idx = grid0.items.findIndex((x) => x.id === itemId);
+    if (idx < 0) return;
+
+    const prev = grid0.items[idx];
+
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      let next: MediaItem;
+      if (file.type.startsWith("video/")) {
+        const v = await extractVideoPreview(objectUrl);
+        next = {
+          ...prev,
+          fileName: file.name,
+          kind: "video",
+          source: "local",
+          objectUrl,
+          previewUrl: v.previewUrl,
+          width: v.width,
+          height: v.height,
+          aspect: v.width / v.height,
+          remoteId: undefined,
+          permalink: undefined,
+          timestamp: undefined,
+        };
+      } else {
+        const meta = await loadImageMeta(objectUrl);
+        next = {
+          ...prev,
+          fileName: file.name,
+          kind: "image",
+          source: "local",
+          objectUrl,
+          previewUrl: objectUrl,
+          width: meta.width,
+          height: meta.height,
+          aspect: meta.width / meta.height,
+          remoteId: undefined,
+          permalink: undefined,
+          timestamp: undefined,
+        };
+      }
+
+      // Revoke previous local URLs to avoid leaks.
+      if (prev.source === "local") revokeItemUrls(prev);
+
+      set((s) => ({
+        grids: s.grids.map((g) => {
+          if (g.id !== s.activeGridId) return g;
+          const nextItems = g.items.slice();
+          nextItems[idx] = next;
+          const nextCrops = { ...g.crops };
+          delete nextCrops[itemId]; // reset crop for replaced media
+          return { ...g, items: nextItems, crops: nextCrops };
+        }),
+        cropModal: { open: false, gridId: null, itemId: null, cropKey: null, targetAspect: null },
+      }));
+    } catch {
+      URL.revokeObjectURL(objectUrl);
+    }
   },
 
   removeItem: (id) => {
