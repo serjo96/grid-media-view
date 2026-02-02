@@ -33,6 +33,15 @@ function App() {
   const custom = activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 };
   const setCustom = useAppStore((s) => s.setCustom);
 
+  useEffect(() => {
+    // Keep view controls simple:
+    // - TG chat view only makes sense for Telegram preset.
+    // - For other presets we silently fall back to single.
+    if (preset !== "tg" && viewMode === "tgChat") {
+      setViewMode("single");
+    }
+  }, [preset, viewMode]);
+
   const previewTitle = useMemo(() => {
     if (viewMode === "tgChat") return "Telegram chat";
     if (viewMode === "allGrids") return "All grids";
@@ -107,19 +116,62 @@ function App() {
               </select>
             </label>
 
-            <label className="pill">
-              <span style={{ fontSize: 12, color: "var(--muted)" }}>View</span>
-              <select
-                className="select"
-                value={viewMode}
-                onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
-                aria-label="View mode"
-              >
-                <option value="single">Active grid</option>
-                <option value="tgChat">TG chat</option>
-                <option value="allGrids">All grids</option>
-              </select>
-            </label>
+            {preset === "tg" && (
+              <label className="pill">
+                <span style={{ fontSize: 12, color: "var(--muted)" }}>View</span>
+                <select
+                  className="select"
+                  value={viewMode}
+                  onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
+                  aria-label="View mode"
+                >
+                  <option value="single">Active grid</option>
+                  <option value="tgChat">TG chat</option>
+                  <option value="allGrids">All grids</option>
+                </select>
+              </label>
+            )}
+
+            {preset === "custom" && (
+              <div className="pill" aria-label="View mode">
+                <span style={{ fontSize: 12, color: "var(--muted)" }}>View</span>
+                <div className="viewToggle" role="group" aria-label="Custom view toggle">
+                  <button
+                    className={`btn viewToggleBtn ${viewMode === "single" ? "btnToggleActive" : ""}`}
+                    type="button"
+                    onClick={() => setViewMode("single")}
+                    aria-pressed={viewMode === "single"}
+                    title="Active grid"
+                  >
+                    <span className="viewToggleIcon" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M6.5 6.5h11v11h-11z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span className="viewToggleText">Single</span>
+                  </button>
+                  <button
+                    className={`btn viewToggleBtn ${viewMode === "allGrids" ? "btnToggleActive" : ""}`}
+                    type="button"
+                    onClick={() => setViewMode("allGrids")}
+                    aria-pressed={viewMode === "allGrids"}
+                    title="All grids"
+                  >
+                    <span className="viewToggleIcon" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z" fill="currentColor" />
+                      </svg>
+                    </span>
+                    <span className="viewToggleText">All</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             <button
               className={`btn ${replaceMode ? "btnToggleActive" : ""}`}
