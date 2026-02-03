@@ -21,6 +21,7 @@ export function GridPreview(props: {
   const reorder = useAppStore((s) => s.reorder);
 
   const stageWrapNodeRef = useRef<HTMLDivElement | null>(null);
+  const scrollPositionRef = useRef<{ x: number; y: number } | null>(null);
   const { ref: measureRef, width: availableWidth } = useElementSize<HTMLDivElement>("GridPreview.previewStageWrap");
   const stageWrapRef = useCallback(
     (el: HTMLDivElement | null) => {
@@ -123,11 +124,30 @@ export function GridPreview(props: {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={() => {
+              // Сохраняем позицию скролла перед началом перетаскивания
+              scrollPositionRef.current = {
+                x: window.scrollX,
+                y: window.scrollY,
+              };
+            }}
             onDragEnd={(e) => {
               if (replaceMode) return;
               const overId = e.over?.id;
               if (!overId) return;
               reorder(String(e.active.id), String(overId));
+              
+              // Восстанавливаем позицию скролла после завершения перетаскивания
+              if (scrollPositionRef.current) {
+                requestAnimationFrame(() => {
+                  window.scrollTo({
+                    left: scrollPositionRef.current!.x,
+                    top: scrollPositionRef.current!.y,
+                    behavior: "instant",
+                  });
+                  scrollPositionRef.current = null;
+                });
+              }
             }}
           >
             <SortableContext items={ids} strategy={rectSortingStrategy}>
