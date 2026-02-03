@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAppStore } from "../store/useAppStore";
 import { PresetId } from "../domain/layout/presets";
 import { TELEGRAM_MAX_ITEMS } from "../domain/layout/constants";
@@ -63,18 +64,22 @@ export function UploadArea({ onDragStart }: UploadAreaProps) {
         </div>
       </div>
 
-      <div className="uploadFixedBar" role="region" aria-label="Upload actions">
-        <button
-          className="btn uploadFixedBtn"
-          type="button"
-          onClick={() => {
-            inputRef.current?.click();
-          }}
-        >
-          Choose files
-        </button>
-        <div className="uploadFixedHint">{hint}</div>
-      </div>
+      {typeof document !== "undefined" &&
+        createPortal(
+          <div className="uploadFixedBar" role="region" aria-label="Upload actions">
+            <button
+              className="btn uploadFixedBtn"
+              type="button"
+              onClick={() => {
+                inputRef.current?.click();
+              }}
+            >
+              Choose files
+            </button>
+            <div className="uploadFixedHint">{hint}</div>
+          </div>,
+          document.body,
+        )}
 
       <input
         ref={inputRef}

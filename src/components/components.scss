@@ -180,6 +180,12 @@
   .tileOverlay {
     opacity: 1;
   }
+
+  .tileActions {
+    top: auto;
+    bottom: 8px;
+    right: 8px;
+  }
 }
 
 .tileInner {
