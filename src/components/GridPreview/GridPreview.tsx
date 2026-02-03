@@ -5,6 +5,7 @@ import { useAppStore } from "../../store/useAppStore";
 import { PresetId, presetEngines } from "../../domain/layout/presets";
 import {
   ASPECT_PRECISION,
+  DRAG_ACTIVATION_DISTANCE,
   DRAG_LONG_PRESS_DELAY,
   DRAG_LONG_PRESS_TOLERANCE,
   MIN_CONTAINER_WIDTH,
@@ -48,7 +49,7 @@ export function GridPreview(props: {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: DRAG_LONG_PRESS_DELAY, tolerance: DRAG_LONG_PRESS_TOLERANCE },
+      activationConstraint: { distance: DRAG_ACTIVATION_DISTANCE },
     }),
     useSensor(TouchSensor, {
       activationConstraint: { delay: DRAG_LONG_PRESS_DELAY, tolerance: DRAG_LONG_PRESS_TOLERANCE },
