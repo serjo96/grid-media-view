@@ -278,7 +278,7 @@ function App() {
       </div>
 
       <div className="content">
-        <div className="filesPanel">
+        <div className={`filesPanel ${filesPanelOpen ? "filesPanelOpen" : "filesPanelClosed"}`}>
           <details 
             className="panel panelAccordion" 
             open={filesPanelOpen}
@@ -421,7 +421,7 @@ function App() {
         </details>
 
         {preset === PresetId.Instagram && (
-          <div className="panel" style={{ marginTop: 16 }}>
+          <div className="panel panelMobileHideWhenFilesCollapsed" style={{ marginTop: 16 }}>
             <div className="panelBody" style={{ padding: 12 }}>
               <InstagramPanel />
             </div>
@@ -430,7 +430,7 @@ function App() {
 
         {preset === PresetId.Custom && (
           <details 
-            className="panel panelAccordion" 
+            className="panel panelAccordion panelMobileHideWhenFilesCollapsed" 
             open={customPresetOpen}
             onToggle={(e) => setCustomPresetOpen((e.target as HTMLDetailsElement).open)}
             style={{ marginTop: 16 }}
@@ -545,6 +545,27 @@ function App() {
                     </button>
                   </div>
                 )}
+                {canDelete && (
+                  <button
+                    className="btn btnDanger"
+                    type="button"
+                    onClick={() => deleteGrid(activeGridId)}
+                    aria-label={`Delete ${activeGrid?.name ?? "grid"}`}
+                    title={`Delete ${activeGrid?.name ?? "grid"}`}
+                  >
+                    <span className="btnIcon" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                )}
                 {(activeGrid?.items.length ?? 0) > 0 && (
                   <button className="btn btnDanger" type="button" onClick={clear} aria-label="Clear grid">
                     Clear
@@ -625,24 +646,6 @@ function App() {
 
       <CropModal />
 
-      {/* FAB for creating grid on mobile */}
-      <button
-        className="fab"
-        type="button"
-        onClick={createGrid}
-        aria-label="Create new grid"
-        title="Create new grid"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 5v14M5 12h14"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
     </div>
   );
 }

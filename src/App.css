@@ -157,10 +157,16 @@
 
 .gridNavButtons .btn {
   padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .gridNavButtons .btnIcon {
   margin-right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .filesSectionAccordion {
@@ -193,6 +199,16 @@
 
 .btnMobileOnly {
   display: none;
+}
+
+.panelMobileHideWhenFilesCollapsed {
+  display: block;
+}
+
+@media (max-width: 980px) {
+  .filesPanelClosed .panelMobileHideWhenFilesCollapsed {
+    display: none;
+  }
 }
 
 .btnDesktopOnly {
