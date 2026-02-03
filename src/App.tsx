@@ -278,11 +278,12 @@ function App() {
       </div>
 
       <div className="content">
-        <details 
-          className="panel panelAccordion filesPanel" 
-          open={filesPanelOpen}
-          onToggle={(e) => setFilesPanelOpen((e.target as HTMLDetailsElement).open)}
-        >
+        <div className="filesPanel">
+          <details 
+            className="panel panelAccordion" 
+            open={filesPanelOpen}
+            onToggle={(e) => setFilesPanelOpen((e.target as HTMLDetailsElement).open)}
+          >
           <summary className="panelHeader panelSummary" aria-label="Files panel">
             <div className="panelTitle">Files</div>
             <div className="panelHint">Drop images here</div>
@@ -416,79 +417,83 @@ function App() {
                 />
               </div>
             </details>
-
-            {preset === PresetId.Instagram && (
-              <div style={{ paddingTop: 14 }}>
-                <InstagramPanel />
-              </div>
-            )}
-
-            {preset === PresetId.Custom && (
-              <details 
-                className="filesSectionAccordion" 
-                open={customPresetOpen}
-                onToggle={(e) => setCustomPresetOpen((e.target as HTMLDetailsElement).open)}
-              >
-                <summary className="filesSectionSummary">
-                  <div style={{ fontWeight: 650, fontSize: 13 }}>Custom preset</div>
-                  <div className="accordionChevron" aria-hidden="true" />
-                </summary>
-                <div style={{ paddingTop: 12 }}>
-                  <div style={{ display: "grid", gap: 10 }}>
-                    <label className="pill" style={{ justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 12, color: "var(--muted)" }}>Columns</span>
-                      <input
-                        className="select"
-                        style={{ width: 120 }}
-                        type="number"
-                        min={1}
-                        max={8}
-                        value={custom.columns}
-                        onChange={(e) => setCustom({ columns: Number(e.target.value) })}
-                      />
-                    </label>
-                    <label className="pill" style={{ justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 12, color: "var(--muted)" }}>Tile aspect (w/h)</span>
-                      <input
-                        className="select"
-                        style={{ width: 120 }}
-                        type="number"
-                        min={0.1}
-                        step={0.01}
-                        value={custom.tileAspect}
-                        onChange={(e) => setCustom({ tileAspect: Number(e.target.value) })}
-                      />
-                    </label>
-                    <label className="pill" style={{ justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 12, color: "var(--muted)" }}>Gap (px)</span>
-                      <input
-                        className="select"
-                        style={{ width: 120 }}
-                        type="number"
-                        min={0}
-                        max={40}
-                        value={custom.gap}
-                        onChange={(e) => setCustom({ gap: Number(e.target.value) })}
-                      />
-                    </label>
-                    <label className="pill" style={{ justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 12, color: "var(--muted)" }}>Preview width (px)</span>
-                      <input
-                        className="select"
-                        style={{ width: 120 }}
-                        type="number"
-                        min={240}
-                        max={1200}
-                        value={custom.containerWidth}
-                        onChange={(e) => setCustom({ containerWidth: Number(e.target.value) })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </details>
-            )}
           </div>
         </details>
+
+        {preset === PresetId.Instagram && (
+          <div className="panel" style={{ marginTop: 16 }}>
+            <div className="panelBody" style={{ padding: 12 }}>
+              <InstagramPanel />
+            </div>
+          </div>
+        )}
+
+        {preset === PresetId.Custom && (
+          <details 
+            className="panel panelAccordion" 
+            open={customPresetOpen}
+            onToggle={(e) => setCustomPresetOpen((e.target as HTMLDetailsElement).open)}
+            style={{ marginTop: 16 }}
+          >
+            <summary className="panelHeader panelSummary">
+              <div className="panelTitle">Custom preset</div>
+              <div className="accordionChevron" aria-hidden="true" />
+            </summary>
+            <div className="panelBody">
+              <div style={{ display: "grid", gap: 10 }}>
+                <label className="pill" style={{ justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>Columns</span>
+                  <input
+                    className="select"
+                    style={{ width: 120 }}
+                    type="number"
+                    min={1}
+                    max={8}
+                    value={custom.columns}
+                    onChange={(e) => setCustom({ columns: Number(e.target.value) })}
+                  />
+                </label>
+                <label className="pill" style={{ justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>Tile aspect (w/h)</span>
+                  <input
+                    className="select"
+                    style={{ width: 120 }}
+                    type="number"
+                    min={0.1}
+                    step={0.01}
+                    value={custom.tileAspect}
+                    onChange={(e) => setCustom({ tileAspect: Number(e.target.value) })}
+                  />
+                </label>
+                <label className="pill" style={{ justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>Gap (px)</span>
+                  <input
+                    className="select"
+                    style={{ width: 120 }}
+                    type="number"
+                    min={0}
+                    max={40}
+                    value={custom.gap}
+                    onChange={(e) => setCustom({ gap: Number(e.target.value) })}
+                  />
+                </label>
+                <label className="pill" style={{ justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>Preview width (px)</span>
+                  <input
+                    className="select"
+                    style={{ width: 120 }}
+                    type="number"
+                    min={240}
+                    max={1200}
+                    value={custom.containerWidth}
+                    onChange={(e) => setCustom({ containerWidth: Number(e.target.value) })}
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+        )}
+        </div>
 
         <div className="panel previewPanel">
           <div className="panelHeader panelHeaderSticky">
@@ -555,6 +560,24 @@ function App() {
                   replaceMode={replaceMode}
                   replaceTargetId={effectiveReplaceTargetId}
                   onRequestReplace={requestReplace}
+                  onScrollToInstagramPanel={() => {
+                    // Открываем панель Files если она закрыта
+                    if (!filesPanelOpen) {
+                      setFilesPanelOpen(true);
+                    }
+                    // Ждем следующего кадра для рендера, затем скроллим
+                    requestAnimationFrame(() => {
+                      const panel = document.getElementById("instagram-panel");
+                      if (panel) {
+                        panel.scrollIntoView({ behavior: "smooth", block: "center" });
+                        // Фокусируем поле ввода токена
+                        const input = panel.querySelector('input[placeholder="paste token…"]') as HTMLInputElement;
+                        if (input) {
+                          setTimeout(() => input.focus(), 300);
+                        }
+                      }
+                    });
+                  }}
                 />
               ) : (
                 <GridPreview replaceMode={replaceMode} replaceTargetId={effectiveReplaceTargetId} onRequestReplace={requestReplace} />

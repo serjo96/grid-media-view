@@ -6,6 +6,13 @@ import type { InstagramMedia } from "../../domain/instagram/instagramApi";
 import { StaticGridPreview } from "../StaticGridPreview";
 import { GridPreview } from "../GridPreview/GridPreview";
 
+interface InstagramViewProps {
+  replaceMode: boolean;
+  replaceTargetId: string | null;
+  onRequestReplace: (itemId: string) => void;
+  onScrollToInstagramPanel?: () => void;
+}
+
 function mediaToItems(media: InstagramMedia[]): MediaItem[] {
   const defaultW = 1080;
   const defaultH = 1080;
@@ -28,12 +35,8 @@ function mediaToItems(media: InstagramMedia[]): MediaItem[] {
   });
 }
 
-export function InstagramView(props: {
-  replaceMode: boolean;
-  replaceTargetId: string | null;
-  onRequestReplace: (itemId: string) => void;
-}) {
-  const { replaceMode, replaceTargetId, onRequestReplace } = props;
+export function InstagramView(props: InstagramViewProps) {
+  const { replaceMode, replaceTargetId, onRequestReplace, onScrollToInstagramPanel } = props;
   const ig = useAppStore((s) => s.instagram);
   const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
 
@@ -54,7 +57,19 @@ export function InstagramView(props: {
       <div>
         <div style={{ fontWeight: 650, fontSize: 13, marginBottom: 6 }}>Current Instagram grid</div>
         {ig.media.length === 0 ? (
-          <div className="uploadHint">Нет данных. Подключите аккаунт (token) и нажмите Connect/Refresh.</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div className="uploadHint">Нет данных. Подключите аккаунт (token) и нажмите Connect/Refresh.</div>
+            {onScrollToInstagramPanel && (
+              <button
+                className="btn"
+                type="button"
+                onClick={onScrollToInstagramPanel}
+                style={{ alignSelf: "flex-start" }}
+              >
+                Подключить Instagram
+              </button>
+            )}
+          </div>
         ) : (
           <StaticGridPreview grid={currentGrid} presetOverride={PresetId.Instagram} widthPx={PRESET_WIDTH_INSTAGRAM} maxWidthPx={PRESET_WIDTH_INSTAGRAM} />
         )}

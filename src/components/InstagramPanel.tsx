@@ -26,7 +26,7 @@ export function InstagramPanel() {
   const isBusy = ig.status === "loading";
 
   return (
-    <div style={{ display: "grid", gap: 10 }}>
+    <div id="instagram-panel" style={{ display: "grid", gap: 10 }}>
       <div style={{ fontWeight: 650, fontSize: 13 }}>Instagram</div>
       <div className="uploadHint">
         Подключение тут — <b>только демо</b>: вставьте свой access token (Basic Display API). Без авторизации загрузка файлов

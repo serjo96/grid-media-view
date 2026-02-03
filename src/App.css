@@ -109,6 +109,11 @@
   overflow: hidden;
 }
 
+.panelAccordion {
+  overflow: hidden;
+  isolation: isolate;
+}
+
 .panelHeader {
   padding: 12px 12px 10px;
   border-bottom: 1px solid var(--border);
@@ -160,8 +165,6 @@
 
 .filesSectionAccordion {
   margin-bottom: 12px;
-  position: relative;
-  z-index: 1;
 }
 
 .filesSectionAccordion:last-child {
@@ -178,8 +181,6 @@
   user-select: none;
   list-style: none;
   border-bottom: 1px solid var(--border);
-  position: relative;
-  z-index: 2;
 }
 
 .filesSectionSummary::-webkit-details-marker {
@@ -188,11 +189,6 @@
 
 .filesSectionAccordion[open] .filesSectionSummary {
   border-bottom-color: transparent;
-}
-
-.filesSectionAccordion > div {
-  position: relative;
-  z-index: 1;
 }
 
 .btnMobileOnly {
@@ -223,6 +219,16 @@
 
 .panelAccordion {
   padding: 0;
+}
+
+.panelAccordion summary {
+  position: relative;
+  z-index: 2;
+}
+
+.panelAccordion .panelBody {
+  position: relative;
+  z-index: 1;
 }
 
 .panelSummary {
