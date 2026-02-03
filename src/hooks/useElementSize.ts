@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useState } from "react";
 
-export function useElementSize<T extends HTMLElement>(debugLabel?: string) {
+export function useElementSize<T extends HTMLElement>(_debugLabel?: string) {
   const [node, setNode] = useState<T | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
 

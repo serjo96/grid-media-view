@@ -2,12 +2,13 @@
  * Layout constants used across the application
  */
 
-// View modes
-export enum ViewMode {
-  Single = "single",
-  TgChat = "tgChat",
-  AllGrids = "allGrids",
-}
+// View modes (const object for erasableSyntaxOnly compatibility)
+export const ViewMode = {
+  Single: "single",
+  TgChat: "tgChat",
+  AllGrids: "allGrids",
+} as const;
+export type ViewMode = (typeof ViewMode)[keyof typeof ViewMode];
 
 // Telegram album limits
 export const TELEGRAM_MAX_ITEMS = 10;
