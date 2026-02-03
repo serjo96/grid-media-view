@@ -1,5 +1,5 @@
-import "./App.css";
-import "./components/components.css";
+import "./App.scss";
+import "./components/components.scss";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { UploadArea } from "./components/UploadArea";
 import { StackList } from "./components/StackList";

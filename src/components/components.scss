@@ -1,3 +1,6 @@
+@use '../styles/variables' as *;
+
+// --- Upload (mobile base) ---
 .uploadDrop {
   border: 1px dashed rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.02);
@@ -27,8 +30,22 @@
   color: var(--muted);
 }
 
+.uploadActions {
+  display: none !important;
+}
+
 .uploadFixedBar {
-  display: none;
+  display: grid;
+  gap: 6px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(10, 11, 16, 0.7);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
 }
 
 .uploadFixedBtn {
@@ -43,6 +60,7 @@
   line-height: 1.25;
 }
 
+// --- Stack (mobile base) ---
 .stack {
   display: grid;
   gap: 10px;
@@ -50,7 +68,8 @@
 
 .stackItem {
   display: grid;
-  grid-template-columns: 56px 1fr auto;
+  grid-template-columns: 56px 1fr;
+  grid-template-rows: auto auto;
   gap: 10px;
   align-items: center;
   border: 1px solid var(--border);
@@ -67,13 +86,13 @@
   overflow: hidden;
   position: relative;
   background: rgba(0, 0, 0, 0.35);
-}
 
-.thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
 .stackMeta {
@@ -97,6 +116,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
 }
 
 .stackItemSelected {
@@ -111,11 +132,12 @@
   font-size: 11px;
   color: var(--muted);
   border: 1px solid rgba(124, 92, 255, 0.35);
-  background: rgba(124, 92, 255, 0.10);
+  background: rgba(124, 92, 255, 0.1);
   border-radius: 10px;
   padding: 2px 6px;
 }
 
+// --- Preview (mobile base) ---
 .previewWrap {
   display: flex;
   flex-direction: column;
@@ -126,7 +148,7 @@
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 10px;
+  padding: 6px;
   overflow: hidden;
   width: 100%;
 }
@@ -142,6 +164,7 @@
   margin: 0 auto;
 }
 
+// --- Tiles ---
 .tile {
   position: absolute;
   overflow: hidden;
@@ -153,10 +176,10 @@
 
 .tileReplaceMode {
   touch-action: manipulation;
-}
 
-.tileReplaceMode .tileOverlay {
-  opacity: 1;
+  .tileOverlay {
+    opacity: 1;
+  }
 }
 
 .tileInner {
@@ -176,6 +199,12 @@
 
 .tile:hover .tileOverlay {
   opacity: 1;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .tileOverlay {
+    opacity: 1;
+  }
 }
 
 .tileBadge {
@@ -224,12 +253,7 @@
   outline-offset: 2px;
 }
 
-@media (hover: none) and (pointer: coarse) {
-  .tileOverlay {
-    opacity: 1;
-  }
-}
-
+// --- Modal (mobile base) ---
 .modalBackdrop {
   position: fixed;
   inset: 0;
@@ -266,17 +290,18 @@
 
 .modalBody {
   position: relative;
-  height: 58vh;
-  min-height: 360px;
+  height: 52vh;
+  min-height: 240px;
 }
 
 .modalFooter {
   border-top: 1px solid var(--border);
   padding: 10px 12px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .sliderRow {
@@ -288,14 +313,13 @@
 }
 
 .range {
-  width: 220px;
+  width: 160px;
 }
 
-/* --- View modes --- */
-
+// --- View modes (mobile base) ---
 .allGridsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 12px;
 }
 
@@ -307,10 +331,10 @@
   background: rgba(255, 255, 255, 0.02);
   border-radius: 14px;
   padding: 10px;
-}
 
-.gridCard:hover {
-  border-color: rgba(255, 255, 255, 0.16);
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+  }
 }
 
 .gridCardActive {
@@ -338,10 +362,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
 
-.gridCardDelete .btnIcon {
-  margin-right: 0;
+  .btnIcon {
+    margin-right: 0;
+  }
 }
 
 .gridCardHeader {
@@ -376,10 +400,11 @@
   padding: 4px 6px;
 }
 
+// --- TG chat ---
 .tgChatWindow {
   border: 1px solid var(--border);
-  background: radial-gradient(1200px 600px at 40% 20%, rgba(124, 92, 255, 0.10), transparent 60%),
-    rgba(0, 0, 0, 0.20);
+  background: radial-gradient(1200px 600px at 40% 20%, rgba(124, 92, 255, 0.1), transparent 60%),
+    rgba(0, 0, 0, 0.2);
   border-radius: 16px;
   padding: 12px;
   max-height: 72vh;
@@ -414,10 +439,10 @@
   min-width: 0;
   cursor: pointer;
   text-align: left;
-}
 
-.tgMsgBubble:hover {
-  border-color: rgba(255, 255, 255, 0.18);
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+  }
 }
 
 .tgMsgDelete {
@@ -429,10 +454,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
 
-.tgMsgDelete .btnIcon {
-  margin-right: 0;
+  .btnIcon {
+    margin-right: 0;
+  }
 }
 
 .tgMsgHeader {
@@ -469,65 +494,60 @@
   text-align: right;
 }
 
-@media (max-width: 520px) {
+.mobileBottomSpacer {
+  height: calc(86px + env(safe-area-inset-bottom));
+}
+
+// --- from-sm (521px+): desktop overrides ---
+@include from-sm {
+  .uploadActions {
+    display: flex !important;
+  }
+
+  .uploadFixedBar {
+    display: none;
+  }
+
   .previewCanvas {
-    padding: 6px;
+    padding: 10px;
   }
 
   .stackItem {
-    grid-template-columns: 56px 1fr;
-    grid-template-rows: auto auto;
+    grid-template-columns: 56px 1fr auto;
+    grid-template-rows: auto;
   }
 
   .stackActions {
-    grid-column: 1 / -1;
+    grid-column: auto;
     justify-content: flex-end;
   }
 
   .range {
-    width: 160px;
+    width: 220px;
   }
 
   .modalBody {
-    height: 52vh;
-    min-height: 240px;
+    height: 58vh;
+    min-height: 360px;
   }
 
   .modalFooter {
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    flex-wrap: nowrap;
+    justify-content: space-between;
   }
 
   .allGridsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  }
-
-  /* Mobile UX: keep upload button fixed at the bottom */
-  .uploadActions {
-    display: none !important;
-  }
-
-  .uploadFixedBar {
-    display: grid;
-    gap: 6px;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 50;
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-    background: rgba(10, 11, 16, 0.7);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid var(--border);
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 
   .mobileBottomSpacer {
-    height: calc(86px + env(safe-area-inset-bottom));
+    height: 0;
   }
 }
 
+// --- FAB: show on mobile only (hidden from-sm)
 .fab {
-  display: none;
+  display: flex;
   position: fixed;
   right: 16px;
   bottom: calc(86px + env(safe-area-inset-bottom));
@@ -544,20 +564,19 @@
   justify-content: center;
   transition: transform 150ms ease, box-shadow 150ms ease;
   touch-action: manipulation;
-}
 
-.fab:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-}
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  }
 
-.fab:active {
-  transform: scale(0.95);
-}
-
-@media (max-width: 520px) {
-  .fab {
-    display: flex;
+  &:active {
+    transform: scale(0.95);
   }
 }
 
+@include from-sm {
+  .fab {
+    display: none;
+  }
+}

@@ -1,0 +1,22 @@
+// Breakpoints (mobile-first: base = mobile, then add from-sm/md/lg)
+$bp-sm: 521px;
+$bp-md: 721px;
+$bp-lg: 981px;
+
+@mixin from-sm {
+  @media (min-width: $bp-sm) {
+    @content;
+  }
+}
+
+@mixin from-md {
+  @media (min-width: $bp-md) {
+    @content;
+  }
+}
+
+@mixin from-lg {
+  @media (min-width: $bp-lg) {
+    @content;
+  }
+}
