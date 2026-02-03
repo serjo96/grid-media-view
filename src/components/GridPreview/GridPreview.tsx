@@ -5,7 +5,8 @@ import { useAppStore } from "../../store/useAppStore";
 import { PresetId, presetEngines } from "../../domain/layout/presets";
 import {
   ASPECT_PRECISION,
-  DRAG_ACTIVATION_DISTANCE,
+  DRAG_LONG_PRESS_DELAY,
+  DRAG_LONG_PRESS_TOLERANCE,
   MIN_CONTAINER_WIDTH,
   MIN_STAGE_HEIGHT,
   PRESET_GAP_TELEGRAM,
@@ -15,8 +16,6 @@ import {
   PRESET_WIDTH_CUSTOM_DEFAULT,
   SAFE_AVAIL_OFFSET,
   TELEGRAM_MAX_ITEMS,
-  TOUCH_ACTIVATION_DELAY,
-  TOUCH_ACTIVATION_TOLERANCE,
   VIEWPORT_PADDING,
 } from "../../domain/layout/constants";
 import { useElementSize } from "../../hooks/useElementSize";
@@ -25,11 +24,11 @@ import type { PxRect } from "./layoutHelpers";
 import { applyGap, buildCustomGridRects } from "./layoutHelpers";
 
 export function GridPreview(props: {
-  replaceMode: boolean;
-  replaceTargetId: string | null;
+  editMode: boolean;
+  editTargetId: string | null;
   onRequestReplace: (itemId: string) => void;
 }) {
-  const { replaceMode, replaceTargetId, onRequestReplace } = props;
+  const { editMode, editTargetId, onRequestReplace } = props;
   const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
   const preset = activeGrid?.preset ?? PresetId.Telegram;
   const custom = activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: PRESET_WIDTH_CUSTOM_DEFAULT };
@@ -49,11 +48,10 @@ export function GridPreview(props: {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: DRAG_ACTIVATION_DISTANCE },
+      activationConstraint: { delay: DRAG_LONG_PRESS_DELAY, tolerance: DRAG_LONG_PRESS_TOLERANCE },
     }),
     useSensor(TouchSensor, {
-      // Prevent accidental scroll; press briefly to start drag.
-      activationConstraint: { delay: TOUCH_ACTIVATION_DELAY, tolerance: TOUCH_ACTIVATION_TOLERANCE },
+      activationConstraint: { delay: DRAG_LONG_PRESS_DELAY, tolerance: DRAG_LONG_PRESS_TOLERANCE },
     }),
   );
 
@@ -128,7 +126,6 @@ export function GridPreview(props: {
               };
             }}
             onDragEnd={(e) => {
-              if (replaceMode) return;
               const overId = e.over?.id;
               if (!overId) return;
               reorder(String(e.active.id), String(overId));
@@ -175,8 +172,8 @@ export function GridPreview(props: {
                       pxRect={pxWithGap}
                       index={idx}
                       cropKey={cropKey}
-                      replaceMode={replaceMode}
-                      isReplaceSelected={replaceMode && replaceTargetId === r.id}
+                      editMode={editMode}
+                      isEditSelected={editMode && editTargetId === r.id}
                       onRequestReplace={onRequestReplace}
                     />
                   );

@@ -30,6 +30,10 @@ export const SAFE_AVAIL_OFFSET = 2;
 
 // Drag & Drop settings
 export const DRAG_ACTIVATION_DISTANCE = 4;
+/** Long-press delay (ms) before drag can start — avoids conflict with scroll/swipe */
+export const DRAG_LONG_PRESS_DELAY = 500;
+/** Max pointer movement (px) during long-press so drag still activates */
+export const DRAG_LONG_PRESS_TOLERANCE = 8;
 export const TOUCH_ACTIVATION_DELAY = 120;
 export const TOUCH_ACTIVATION_TOLERANCE = 8;
 

@@ -24,9 +24,9 @@ function App() {
   const canDelete = grids.length > 1;
 
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Single);
-  const [replaceMode, setReplaceMode] = useState(false);
-  const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
-  const replaceTargetIdRef = useRef<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editTargetId, setEditTargetId] = useState<string | null>(null);
+  const editTargetIdRef = useRef<string | null>(null);
   const replaceInputRef = useRef<HTMLInputElement | null>(null);
   
   // Mobile accordion states
@@ -103,31 +103,31 @@ function App() {
     return "Grid/album layout + crop + reorder";
   }, [viewMode]);
 
-  const effectiveReplaceTargetId = useMemo(() => {
-    if (!replaceMode) return null;
-    if (!replaceTargetId) return null;
-    const exists = (activeGrid?.items ?? []).some((it) => it.id === replaceTargetId);
-    return exists ? replaceTargetId : null;
-  }, [activeGrid?.items, replaceMode, replaceTargetId]);
+  const effectiveEditTargetId = useMemo(() => {
+    if (!editMode) return null;
+    if (!editTargetId) return null;
+    const exists = (activeGrid?.items ?? []).some((it) => it.id === editTargetId);
+    return exists ? editTargetId : null;
+  }, [activeGrid?.items, editMode, editTargetId]);
 
   useEffect(() => {
     // Keep a ref for the hidden <input> handler (avoid relying on async state).
-    replaceTargetIdRef.current = effectiveReplaceTargetId;
-  }, [effectiveReplaceTargetId]);
+    editTargetIdRef.current = effectiveEditTargetId;
+  }, [effectiveEditTargetId]);
 
-  const replaceTargetLabel = useMemo(() => {
-    if (!replaceMode) return null;
-    if (!effectiveReplaceTargetId) return "Select a photo to replace";
-    const idx = (activeGrid?.items ?? []).findIndex((it) => it.id === effectiveReplaceTargetId);
+  const editTargetLabel = useMemo(() => {
+    if (!editMode) return null;
+    if (!effectiveEditTargetId) return "Select a photo to replace";
+    const idx = (activeGrid?.items ?? []).findIndex((it) => it.id === effectiveEditTargetId);
     const it = idx >= 0 ? (activeGrid?.items ?? [])[idx] : null;
     if (!it) return "Select a photo to replace";
     return `Replacing #${idx + 1}: ${it.fileName}`;
-  }, [activeGrid?.items, effectiveReplaceTargetId, replaceMode]);
+  }, [activeGrid?.items, effectiveEditTargetId, editMode]);
 
   const requestReplace = (itemId: string) => {
-    if (!replaceMode) return;
-    setReplaceTargetId(itemId);
-    replaceTargetIdRef.current = itemId;
+    if (!editMode) return;
+    setEditTargetId(itemId);
+    editTargetIdRef.current = itemId;
     // Defer click to ensure state updates don't race with the input handler.
     queueMicrotask(() => replaceInputRef.current?.click());
   };
@@ -223,15 +223,15 @@ function App() {
             )}
 
             <button
-              className={`btn ${replaceMode ? "btnToggleActive" : ""}`}
+              className={`btn ${editMode ? "btnToggleActive" : ""}`}
               type="button"
               onClick={() => {
-                setReplaceMode((v) => !v);
-                setReplaceTargetId(null);
+                setEditMode((v) => !v);
+                setEditTargetId(null);
               }}
-              aria-pressed={replaceMode}
-              aria-label="Toggle replace mode"
-              title="Replace mode (like Telegram)"
+              aria-pressed={editMode}
+              aria-label="Toggle edit mode"
+              title="Edit mode (drag to reorder, replace photo)"
             >
               <span className="btnIcon" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -244,12 +244,12 @@ function App() {
                   <path d="M13.5 6.5l4 4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                 </svg>
               </span>
-              Replace
+              Edit
             </button>
 
-            {replaceMode && (
+            {editMode && (
               <div className="pill" style={{ gap: 10, maxWidth: 360 }}>
-                <span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>Edit</span>
+                <span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>Replace</span>
                 <span
                   style={{
                     fontSize: 12,
@@ -259,13 +259,13 @@ function App() {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {replaceTargetLabel}
+                  {editTargetLabel}
                 </span>
-                {effectiveReplaceTargetId && (
+                {effectiveEditTargetId && (
                   <button
                     className="btn btnGhost"
                     type="button"
-                    onClick={() => setReplaceTargetId(null)}
+                    onClick={() => setEditTargetId(null)}
                     aria-label="Clear replace target"
                   >
                     ✕
@@ -411,8 +411,8 @@ function App() {
               </summary>
               <div style={{ paddingTop: 12 }}>
                 <StackList
-                  replaceMode={replaceMode}
-                  replaceTargetId={effectiveReplaceTargetId}
+                  editMode={editMode}
+                  editTargetId={effectiveEditTargetId}
                   onRequestReplace={requestReplace}
                 />
               </div>
@@ -578,8 +578,8 @@ function App() {
             {viewMode === ViewMode.Single &&
               (preset === PresetId.Instagram ? (
                 <InstagramView
-                  replaceMode={replaceMode}
-                  replaceTargetId={effectiveReplaceTargetId}
+                  editMode={editMode}
+                  editTargetId={effectiveEditTargetId}
                   onRequestReplace={requestReplace}
                   onScrollToInstagramPanel={() => {
                     // Открываем панель Files если она закрыта
@@ -601,7 +601,7 @@ function App() {
                   }}
                 />
               ) : (
-                <GridPreview replaceMode={replaceMode} replaceTargetId={effectiveReplaceTargetId} onRequestReplace={requestReplace} />
+                <GridPreview editMode={editMode} editTargetId={effectiveEditTargetId} onRequestReplace={requestReplace} />
               ))}
             {viewMode === ViewMode.TgChat && (
               <TgChatView
@@ -634,11 +634,11 @@ function App() {
         accept="image/*,video/*"
         style={{ display: "none" }}
         onChange={async (e) => {
-          const id = replaceTargetIdRef.current;
+          const id = editTargetIdRef.current;
           const f = e.target.files?.[0];
           if (id && f) {
             await replaceItemFile({ itemId: id, file: f });
-            setReplaceTargetId(null);
+            setEditTargetId(null);
           }
           e.target.value = "";
         }}

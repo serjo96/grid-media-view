@@ -7,8 +7,8 @@ import { StaticGridPreview } from "../StaticGridPreview";
 import { GridPreview } from "../GridPreview/GridPreview";
 
 interface InstagramViewProps {
-  replaceMode: boolean;
-  replaceTargetId: string | null;
+  editMode: boolean;
+  editTargetId: string | null;
   onRequestReplace: (itemId: string) => void;
   onScrollToInstagramPanel?: () => void;
 }
@@ -36,7 +36,7 @@ function mediaToItems(media: InstagramMedia[]): MediaItem[] {
 }
 
 export function InstagramView(props: InstagramViewProps) {
-  const { replaceMode, replaceTargetId, onRequestReplace, onScrollToInstagramPanel } = props;
+  const { editMode, editTargetId, onRequestReplace, onScrollToInstagramPanel } = props;
   const ig = useAppStore((s) => s.instagram);
   const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
 
@@ -80,7 +80,7 @@ export function InstagramView(props: InstagramViewProps) {
         <div className="uploadHint" style={{ marginBottom: 10 }}>
           Это ваш активный грид: можно драгать, кропать и добавлять локальные файлы даже без авторизации.
         </div>
-        <GridPreview replaceMode={replaceMode} replaceTargetId={replaceTargetId} onRequestReplace={onRequestReplace} />
+        <GridPreview editMode={editMode} editTargetId={editTargetId} onRequestReplace={onRequestReplace} />
       </div>
     </div>
   );

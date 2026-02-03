@@ -11,11 +11,11 @@ export function SortableTile(props: {
   pxRect: { left: number; top: number; width: number; height: number };
   index: number;
   cropKey: string;
-  replaceMode: boolean;
-  isReplaceSelected: boolean;
+  editMode: boolean;
+  isEditSelected: boolean;
   onRequestReplace: (itemId: string) => void;
 }) {
-  const { rect, pxRect, index, cropKey, replaceMode, isReplaceSelected, onRequestReplace } = props;
+  const { rect, pxRect, index, cropKey, editMode, isEditSelected, onRequestReplace } = props;
 
   const item = useAppStore(
     (s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.items.find((i) => i.id === rect.id) ?? null,
@@ -27,7 +27,7 @@ export function SortableTile(props: {
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: rect.id,
-    disabled: !item || replaceMode,
+    disabled: !item,
   });
 
   const style = useMemo(() => {
@@ -56,7 +56,7 @@ export function SortableTile(props: {
   return (
     <div
       ref={setNodeRef}
-      className={`tile ${replaceMode ? "tileReplaceMode" : ""} ${isReplaceSelected ? "tileSelected" : ""}`}
+      className={`tile ${editMode ? "tileEditMode" : ""} ${isEditSelected ? "tileSelected" : ""}`}
       style={{
         ...style,
         borderTopLeftRadius: rect.round?.tl ? 18 : 12,
@@ -64,8 +64,8 @@ export function SortableTile(props: {
         borderBottomLeftRadius: rect.round?.bl ? 18 : 12,
         borderBottomRightRadius: rect.round?.br ? 18 : 12,
       }}
-      {...(!replaceMode ? attributes : {})}
-      {...(!replaceMode ? listeners : {})}
+      {...(item ? attributes : {})}
+      {...(item ? listeners : {})}
       aria-label="Tile"
     >
       <div className="tileInner">
@@ -85,7 +85,7 @@ export function SortableTile(props: {
         )}
         <div className="tileOverlay">
           <div className="tileBadge">#{index + 1}</div>
-          {item && replaceMode && (
+          {item && editMode && (
             <div className="tileActions">
               <button
                 className="tileActionBtn tileActionBtnIcon"

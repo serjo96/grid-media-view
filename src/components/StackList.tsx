@@ -7,11 +7,11 @@ function fmtAspect(a: number) {
 }
 
 export function StackList(props: {
-  replaceMode: boolean;
-  replaceTargetId: string | null;
+  editMode: boolean;
+  editTargetId: string | null;
   onRequestReplace: (itemId: string) => void;
 }) {
-  const { replaceMode, replaceTargetId, onRequestReplace } = props;
+  const { editMode, editTargetId, onRequestReplace } = props;
   const items = useAppStore(
     (s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.items ?? [],
   );
@@ -28,7 +28,7 @@ export function StackList(props: {
       {items.map((it, idx) => (
         <div
           key={it.id}
-          className={`stackItem ${replaceMode && replaceTargetId === it.id ? "stackItemSelected" : ""}`}
+          className={`stackItem ${editMode && editTargetId === it.id ? "stackItemSelected" : ""}`}
         >
           <div className="thumb">
             <img src={it.previewUrl} alt={it.fileName} draggable={false} />
@@ -40,7 +40,7 @@ export function StackList(props: {
               <span style={{ color: "var(--muted)", fontSize: 12 }}>
                 [{it.source === "instagram" ? "IG" : "local"}]
               </span>
-              {replaceMode && replaceTargetId === it.id && (
+              {editMode && editTargetId === it.id && (
                 <span className="stackTag" style={{ marginLeft: 8 }}>
                   selected
                 </span>
@@ -52,7 +52,7 @@ export function StackList(props: {
           </div>
 
           <div className="stackActions">
-            {replaceMode && (
+            {editMode && (
               <button className="btn" type="button" onClick={() => onRequestReplace(it.id)} aria-label={`Replace ${it.fileName}`}>
                 <span className="btnIcon" aria-hidden="true">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
