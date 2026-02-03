@@ -302,12 +302,11 @@
 .gridCard {
   display: block;
   width: 100%;
-  text-align: left;
+  position: relative;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.02);
   border-radius: 14px;
   padding: 10px;
-  cursor: pointer;
 }
 
 .gridCard:hover {
@@ -317,6 +316,32 @@
 .gridCardActive {
   border-color: rgba(124, 92, 255, 0.55);
   background: rgba(124, 92, 255, 0.08);
+}
+
+.gridCardButton {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+.gridCardDelete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 6px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gridCardDelete .btnIcon {
+  margin-right: 0;
 }
 
 .gridCardHeader {
@@ -373,6 +398,12 @@
   outline: 2px solid rgba(124, 92, 255, 0.35);
 }
 
+.tgMsgBubbleWrapper {
+  position: relative;
+  width: 100%;
+  max-width: min(440px, 100%);
+}
+
 .tgMsgBubble {
   display: block;
   width: 100%;
@@ -380,7 +411,6 @@
   background: rgba(34, 197, 94, 0.12);
   border-radius: 18px 18px 6px 18px;
   padding: 10px;
-  max-width: min(440px, 100%);
   min-width: 0;
   cursor: pointer;
   text-align: left;
@@ -388,6 +418,21 @@
 
 .tgMsgBubble:hover {
   border-color: rgba(255, 255, 255, 0.18);
+}
+
+.tgMsgDelete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 6px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tgMsgDelete .btnIcon {
+  margin-right: 0;
 }
 
 .tgMsgHeader {

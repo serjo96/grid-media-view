@@ -16,8 +16,10 @@ function App() {
   const activeGridId = useAppStore((s) => s.activeGridId);
   const createGrid = useAppStore((s) => s.createGrid);
   const selectGrid = useAppStore((s) => s.selectGrid);
+  const deleteGrid = useAppStore((s) => s.deleteGrid);
   const replaceItemFile = useAppStore((s) => s.replaceItemFile);
   const hydrating = useAppStore((s) => s.persistence.hydrating);
+  const canDelete = grids.length > 1;
 
   const [viewMode, setViewMode] = useState<"single" | "tgChat" | "allGrids">("single");
   const [replaceMode, setReplaceMode] = useState(false);
@@ -251,25 +253,71 @@ function App() {
               {grids.map((g) => {
                 const active = g.id === activeGridId;
                 return (
-                  <button
+                  <div
                     key={g.id}
-                    type="button"
-                    className="btn"
-                    onClick={() => selectGrid(g.id)}
                     style={{
-                      textAlign: "left",
-                      borderColor: active ? "rgba(124, 92, 255, 0.55)" : undefined,
-                      background: active ? "rgba(124, 92, 255, 0.10)" : undefined,
+                      display: "flex",
+                      alignItems: "stretch",
+                      gap: 0,
+                      position: "relative",
                     }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                      <span style={{ fontWeight: 650 }}>{g.name}</span>
-                      <span style={{ color: "var(--muted)", fontSize: 12 }}>{g.items.length} files</span>
-                    </div>
-                    <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
-                      preset: {g.preset === "tg" ? "tg" : g.preset === "inst" ? "inst" : "custom"}
-                    </div>
-                  </button>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => selectGrid(g.id)}
+                      style={{
+                        flex: 1,
+                        textAlign: "left",
+                        borderColor: active ? "rgba(124, 92, 255, 0.55)" : undefined,
+                        background: active ? "rgba(124, 92, 255, 0.10)" : undefined,
+                        borderTopRightRadius: 0,
+                        borderBottomRightRadius: 0,
+                        borderRight: canDelete ? "1px solid var(--border)" : undefined,
+                        marginRight: 0,
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                        <span style={{ fontWeight: 650 }}>{g.name}</span>
+                        <span style={{ color: "var(--muted)", fontSize: 12 }}>{g.items.length} files</span>
+                      </div>
+                      <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
+                        preset: {g.preset === "tg" ? "tg" : g.preset === "inst" ? "inst" : "custom"}
+                      </div>
+                    </button>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        className="btn btnDanger"
+                        onClick={() => deleteGrid(g.id)}
+                        aria-label={`Delete ${g.name}`}
+                        title="Delete grid"
+                        style={{
+                          padding: "8px 10px",
+                          flexShrink: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
+                          borderLeft: "none",
+                          marginLeft: 0,
+                        }}
+                      >
+                        <span className="btnIcon" aria-hidden="true" style={{ marginRight: 0 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path
+                              d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>

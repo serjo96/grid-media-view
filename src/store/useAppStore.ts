@@ -75,6 +75,7 @@ type AppState = {
   createGrid: () => void;
   selectGrid: (gridId: string) => void;
   renameGrid: (gridId: string, name: string) => void;
+  deleteGrid: (gridId: string) => void;
 
   setPreset: (preset: PresetId) => void;
   setCustom: (patch: Partial<CustomPreset>) => void;
@@ -281,6 +282,32 @@ export const useAppStore = create<AppState>()(
     set((s) => ({
       grids: s.grids.map((g) => (g.id === gridId ? { ...g, name: name.trim().slice(0, 60) || g.name } : g)),
     })),
+
+  deleteGrid: (gridId) => {
+    const s = get();
+    // Не позволяем удалить последний grid
+    if (s.grids.length <= 1) return;
+
+    const gridToDelete = s.grids.find((g) => g.id === gridId);
+    if (!gridToDelete) return;
+
+    // Освобождаем URL для элементов удаляемого grid
+    for (const it of gridToDelete.items) revokeItemUrls(it);
+
+    const remainingGrids = s.grids.filter((g) => g.id !== gridId);
+    let nextActiveGridId = s.activeGridId;
+
+    // Если удаляемый grid был активным, переключаемся на первый оставшийся
+    if (s.activeGridId === gridId) {
+      nextActiveGridId = remainingGrids[0]?.id ?? s.grids[0]?.id;
+    }
+
+    set({
+      grids: remainingGrids,
+      activeGridId: nextActiveGridId,
+      cropModal: { open: false, gridId: null, itemId: null, cropKey: null, targetAspect: null },
+    });
+  },
 
   setPreset: (preset) =>
     set((s) => ({
