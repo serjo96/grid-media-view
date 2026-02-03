@@ -27,7 +27,7 @@ export function SortableTile(props: {
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: rect.id,
-    disabled: !item,
+    disabled: !item || editMode,
   });
 
   const style = useMemo(() => {
@@ -64,8 +64,8 @@ export function SortableTile(props: {
         borderBottomLeftRadius: rect.round?.bl ? 18 : 12,
         borderBottomRightRadius: rect.round?.br ? 18 : 12,
       }}
-      {...(item ? attributes : {})}
-      {...(item ? listeners : {})}
+      {...(item && !editMode ? attributes : {})}
+      {...(item && !editMode ? listeners : {})}
       aria-label="Tile"
     >
       <div className="tileInner">

@@ -126,6 +126,7 @@ export function GridPreview(props: {
               };
             }}
             onDragEnd={(e) => {
+              if (editMode) return;
               const overId = e.over?.id;
               if (!overId) return;
               reorder(String(e.active.id), String(overId));
