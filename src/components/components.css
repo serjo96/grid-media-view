@@ -526,3 +526,38 @@
   }
 }
 
+.fab {
+  display: none;
+  position: fixed;
+  right: 16px;
+  bottom: calc(86px + env(safe-area-inset-bottom));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(124, 92, 255, 0.9);
+  border: 1px solid rgba(124, 92, 255, 0.5);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 40;
+  align-items: center;
+  justify-content: center;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  touch-action: manipulation;
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 520px) {
+  .fab {
+    display: flex;
+  }
+}
+

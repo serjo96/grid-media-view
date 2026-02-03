@@ -1,7 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 
-export function UploadArea() {
+interface UploadAreaProps {
+  onDragStart?: () => void;
+}
+
+export function UploadArea({ onDragStart }: UploadAreaProps) {
   const addFiles = useAppStore((s) => s.addFiles);
   const preset = useAppStore((s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.preset ?? "tg");
   const itemsCount = useAppStore(
@@ -20,6 +24,11 @@ export function UploadArea() {
     <div className="uploadArea">
       <div
         className={`uploadDrop ${isOver ? "uploadDropActive" : ""}`}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          setIsOver(true);
+          onDragStart?.();
+        }}
         onDragOver={(e) => {
           e.preventDefault();
           setIsOver(true);

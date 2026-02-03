@@ -26,6 +26,21 @@ function App() {
   const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
   const replaceTargetIdRef = useRef<string | null>(null);
   const replaceInputRef = useRef<HTMLInputElement | null>(null);
+  
+  // Mobile accordion states
+  const [filesPanelOpen, setFilesPanelOpen] = useState(() => {
+    // On mobile, start closed; on desktop, start open
+    if (typeof window !== "undefined") {
+      return window.innerWidth > 980;
+    }
+    return true;
+  });
+  const [gridsSectionOpen, setGridsSectionOpen] = useState(false);
+  const [customPresetOpen, setCustomPresetOpen] = useState(false);
+  
+  // Topbar visibility on mobile
+  const [topbarVisible, setTopbarVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
 
@@ -43,6 +58,36 @@ function App() {
       setViewMode("single");
     }
   }, [preset, viewMode]);
+
+  // Handle topbar visibility on scroll (mobile only)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const isMobile = window.innerWidth <= 720;
+      
+      if (isMobile) {
+        // Show topbar when scrolling up, hide when scrolling down
+        if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+          setTopbarVisible(false);
+        } else if (currentScrollY < lastScrollY.current) {
+          setTopbarVisible(true);
+        }
+      } else {
+        setTopbarVisible(true);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    const throttledHandleScroll = () => {
+      requestAnimationFrame(handleScroll);
+    };
+
+    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", throttledHandleScroll);
+  }, []);
 
   const previewTitle = useMemo(() => {
     if (viewMode === "tgChat") return "Telegram chat";
@@ -96,7 +141,7 @@ function App() {
           </div>
         </div>
       )}
-      <div className="topbar">
+      <div className={`topbar ${!topbarVisible ? "topbarHidden" : ""}`}>
         <div className="topbarInner">
           <div className="brand">
             <div className="title">Photo Grid Previewer</div>
@@ -226,176 +271,280 @@ function App() {
                 )}
               </div>
             )}
-
-            <button className="btn btnDanger" type="button" onClick={clear}>
-              Clear
-            </button>
           </div>
         </div>
       </div>
 
       <div className="content">
-        <details className="panel panelAccordion" open>
+        <details 
+          className="panel panelAccordion filesPanel" 
+          open={filesPanelOpen}
+          onToggle={(e) => setFilesPanelOpen((e.target as HTMLDetailsElement).open)}
+        >
           <summary className="panelHeader panelSummary" aria-label="Files panel">
             <div className="panelTitle">Files</div>
             <div className="panelHint">Drop images here</div>
             <div className="accordionChevron" aria-hidden="true" />
           </summary>
           <div className="panelBody">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-              <div style={{ fontWeight: 650, fontSize: 13 }}>Grids</div>
-              <button className="btn" type="button" onClick={createGrid}>
-                Create new
-              </button>
-            </div>
-            <div style={{ height: 10 }} />
-            <div style={{ display: "grid", gap: 8 }}>
-              {grids.map((g) => {
-                const active = g.id === activeGridId;
-                return (
-                  <div
-                    key={g.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "stretch",
-                      gap: 0,
-                      position: "relative",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => selectGrid(g.id)}
-                      style={{
-                        flex: 1,
-                        textAlign: "left",
-                        borderColor: active ? "rgba(124, 92, 255, 0.55)" : undefined,
-                        background: active ? "rgba(124, 92, 255, 0.10)" : undefined,
-                        borderTopRightRadius: 0,
-                        borderBottomRightRadius: 0,
-                        borderRight: canDelete ? "1px solid var(--border)" : undefined,
-                        marginRight: 0,
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                        <span style={{ fontWeight: 650 }}>{g.name}</span>
-                        <span style={{ color: "var(--muted)", fontSize: 12 }}>{g.items.length} files</span>
-                      </div>
-                      <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
-                        preset: {g.preset === "tg" ? "tg" : g.preset === "inst" ? "inst" : "custom"}
-                      </div>
-                    </button>
-                    {canDelete && (
-                      <button
-                        type="button"
-                        className="btn btnDanger"
-                        onClick={() => deleteGrid(g.id)}
-                        aria-label={`Delete ${g.name}`}
-                        title="Delete grid"
+            <details 
+              className="filesSectionAccordion" 
+              open={gridsSectionOpen}
+              onToggle={(e) => setGridsSectionOpen((e.target as HTMLDetailsElement).open)}
+            >
+              <summary className="filesSectionSummary">
+                <div style={{ fontWeight: 650, fontSize: 13 }}>Grids</div>
+                <button 
+                  className="btn btnMobileOnly" 
+                  type="button" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    createGrid();
+                  }}
+                  aria-label="Create new grid"
+                >
+                  Create new
+                </button>
+                <div className="accordionChevron" aria-hidden="true" />
+              </summary>
+              <div style={{ paddingTop: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                  <div style={{ fontWeight: 650, fontSize: 13 }}>Grids</div>
+                  <button className="btn btnDesktopOnly" type="button" onClick={createGrid}>
+                    Create new
+                  </button>
+                </div>
+                <div style={{ height: 10 }} />
+                <div style={{ display: "grid", gap: 8 }}>
+                  {grids.map((g) => {
+                    const active = g.id === activeGridId;
+                    return (
+                      <div
+                        key={g.id}
                         style={{
-                          padding: "8px 10px",
-                          flexShrink: 0,
                           display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderTopLeftRadius: 0,
-                          borderBottomLeftRadius: 0,
-                          borderLeft: "none",
-                          marginLeft: 0,
+                          alignItems: "stretch",
+                          gap: 0,
+                          position: "relative",
                         }}
                       >
-                        <span className="btnIcon" aria-hidden="true" style={{ marginRight: 0 }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                            <path
-                              d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+                        <button
+                          type="button"
+                          className="btn"
+                          onClick={() => selectGrid(g.id)}
+                          style={{
+                            flex: 1,
+                            textAlign: "left",
+                            borderTop: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
+                            borderBottom: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
+                            borderLeft: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
+                            borderRight: canDelete ? "1px solid var(--border)" : active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
+                            background: active ? "rgba(124, 92, 255, 0.10)" : undefined,
+                            borderTopRightRadius: 0,
+                            borderBottomRightRadius: 0,
+                            marginRight: 0,
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                            <span style={{ fontWeight: 650 }}>{g.name}</span>
+                            <span style={{ color: "var(--muted)", fontSize: 12 }}>{g.items.length} files</span>
+                          </div>
+                          <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
+                            preset: {g.preset === "tg" ? "tg" : g.preset === "inst" ? "inst" : "custom"}
+                          </div>
+                        </button>
+                        {canDelete && (
+                          <button
+                            type="button"
+                            className="btn btnDanger"
+                            onClick={() => deleteGrid(g.id)}
+                            aria-label={`Delete ${g.name}`}
+                            title="Delete grid"
+                            style={{
+                              padding: "8px 10px",
+                              flexShrink: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderTopLeftRadius: 0,
+                              borderBottomLeftRadius: 0,
+                              borderLeft: "none",
+                              marginLeft: 0,
+                            }}
+                          >
+                            <span className="btnIcon" aria-hidden="true" style={{ marginRight: 0 }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                <path
+                                  d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </details>
+
+            <div style={{ paddingTop: 14, paddingBottom: 14 }}>
+              <UploadArea onDragStart={() => {
+                if (typeof window !== "undefined" && window.innerWidth <= 980) {
+                  setFilesPanelOpen(true);
+                }
+              }} />
             </div>
 
-            <div style={{ height: 14 }} />
-            <InstagramPanel />
-            {preset === "inst" && <div style={{ height: 14 }} />}
-            <UploadArea />
-            <div style={{ height: 12 }} />
-            <StackList
-              replaceMode={replaceMode}
-              replaceTargetId={effectiveReplaceTargetId}
-              onRequestReplace={requestReplace}
-            />
+            <details className="filesSectionAccordion" open>
+              <summary className="filesSectionSummary">
+                <div style={{ fontWeight: 650, fontSize: 13 }}>File list</div>
+                <div className="accordionChevron" aria-hidden="true" />
+              </summary>
+              <div style={{ paddingTop: 12 }}>
+                <StackList
+                  replaceMode={replaceMode}
+                  replaceTargetId={effectiveReplaceTargetId}
+                  onRequestReplace={requestReplace}
+                />
+              </div>
+            </details>
+
+            {preset === "inst" && (
+              <div style={{ paddingTop: 14 }}>
+                <InstagramPanel />
+              </div>
+            )}
 
             {preset === "custom" && (
-              <>
-                <div style={{ height: 12 }} />
-                <div style={{ fontWeight: 650, fontSize: 13, marginBottom: 8 }}>Custom preset</div>
-                <div style={{ display: "grid", gap: 10 }}>
-                  <label className="pill" style={{ justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>Columns</span>
-                    <input
-                      className="select"
-                      style={{ width: 120 }}
-                      type="number"
-                      min={1}
-                      max={8}
-                      value={custom.columns}
-                      onChange={(e) => setCustom({ columns: Number(e.target.value) })}
-                    />
-                  </label>
-                  <label className="pill" style={{ justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>Tile aspect (w/h)</span>
-                    <input
-                      className="select"
-                      style={{ width: 120 }}
-                      type="number"
-                      min={0.1}
-                      step={0.01}
-                      value={custom.tileAspect}
-                      onChange={(e) => setCustom({ tileAspect: Number(e.target.value) })}
-                    />
-                  </label>
-                  <label className="pill" style={{ justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>Gap (px)</span>
-                    <input
-                      className="select"
-                      style={{ width: 120 }}
-                      type="number"
-                      min={0}
-                      max={40}
-                      value={custom.gap}
-                      onChange={(e) => setCustom({ gap: Number(e.target.value) })}
-                    />
-                  </label>
-                  <label className="pill" style={{ justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>Preview width (px)</span>
-                    <input
-                      className="select"
-                      style={{ width: 120 }}
-                      type="number"
-                      min={240}
-                      max={1200}
-                      value={custom.containerWidth}
-                      onChange={(e) => setCustom({ containerWidth: Number(e.target.value) })}
-                    />
-                  </label>
+              <details 
+                className="filesSectionAccordion" 
+                open={customPresetOpen}
+                onToggle={(e) => setCustomPresetOpen((e.target as HTMLDetailsElement).open)}
+              >
+                <summary className="filesSectionSummary">
+                  <div style={{ fontWeight: 650, fontSize: 13 }}>Custom preset</div>
+                  <div className="accordionChevron" aria-hidden="true" />
+                </summary>
+                <div style={{ paddingTop: 12 }}>
+                  <div style={{ display: "grid", gap: 10 }}>
+                    <label className="pill" style={{ justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 12, color: "var(--muted)" }}>Columns</span>
+                      <input
+                        className="select"
+                        style={{ width: 120 }}
+                        type="number"
+                        min={1}
+                        max={8}
+                        value={custom.columns}
+                        onChange={(e) => setCustom({ columns: Number(e.target.value) })}
+                      />
+                    </label>
+                    <label className="pill" style={{ justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 12, color: "var(--muted)" }}>Tile aspect (w/h)</span>
+                      <input
+                        className="select"
+                        style={{ width: 120 }}
+                        type="number"
+                        min={0.1}
+                        step={0.01}
+                        value={custom.tileAspect}
+                        onChange={(e) => setCustom({ tileAspect: Number(e.target.value) })}
+                      />
+                    </label>
+                    <label className="pill" style={{ justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 12, color: "var(--muted)" }}>Gap (px)</span>
+                      <input
+                        className="select"
+                        style={{ width: 120 }}
+                        type="number"
+                        min={0}
+                        max={40}
+                        value={custom.gap}
+                        onChange={(e) => setCustom({ gap: Number(e.target.value) })}
+                      />
+                    </label>
+                    <label className="pill" style={{ justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 12, color: "var(--muted)" }}>Preview width (px)</span>
+                      <input
+                        className="select"
+                        style={{ width: 120 }}
+                        type="number"
+                        min={240}
+                        max={1200}
+                        value={custom.containerWidth}
+                        onChange={(e) => setCustom({ containerWidth: Number(e.target.value) })}
+                      />
+                    </label>
+                  </div>
                 </div>
-              </>
+              </details>
             )}
           </div>
         </details>
 
-        <div className="panel">
-          <div className="panelHeader">
-            <div className="panelTitle">{previewTitle}</div>
-            <div className="panelHint">{previewHint}</div>
+        <div className="panel previewPanel">
+          <div className="panelHeader panelHeaderSticky">
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+              <div>
+                <div className="panelTitle">
+                  {viewMode === "single" && activeGrid ? `${previewTitle}: ${activeGrid.name}` : previewTitle}
+                </div>
+                <div className="panelHint">{previewHint}</div>
+              </div>
+            </div>
+            {viewMode === "single" && (
+              <div className="previewHeaderActions">
+                {grids.length > 1 && (
+                  <div className="gridNavButtons">
+                    <button
+                      className="btn"
+                      type="button"
+                      onClick={() => {
+                        const currentIndex = grids.findIndex((g) => g.id === activeGridId);
+                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : grids.length - 1;
+                        selectGrid(grids[prevIndex].id);
+                      }}
+                      aria-label="Previous grid"
+                      title="Previous grid"
+                    >
+                      <span className="btnIcon" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      className="btn"
+                      type="button"
+                      onClick={() => {
+                        const currentIndex = grids.findIndex((g) => g.id === activeGridId);
+                        const nextIndex = currentIndex < grids.length - 1 ? currentIndex + 1 : 0;
+                        selectGrid(grids[nextIndex].id);
+                      }}
+                      aria-label="Next grid"
+                      title="Next grid"
+                    >
+                      <span className="btnIcon" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                )}
+                {(activeGrid?.items.length ?? 0) > 0 && (
+                  <button className="btn btnDanger" type="button" onClick={clear} aria-label="Clear grid">
+                    Clear
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           <div className="panelBody">
             {viewMode === "single" &&
@@ -450,6 +599,25 @@ function App() {
       />
 
       <CropModal />
+
+      {/* FAB for creating grid on mobile */}
+      <button
+        className="fab"
+        type="button"
+        onClick={createGrid}
+        aria-label="Create new grid"
+        title="Create new grid"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 5v14M5 12h14"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
     </div>
   );
 }
