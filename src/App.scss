@@ -108,6 +108,14 @@
   align-items: start;
 }
 
+.previewPanel {
+  order: -1;
+}
+
+.filesPanel {
+  order: 0;
+}
+
 .panel {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--panel);
   border: 1px solid var(--border);
