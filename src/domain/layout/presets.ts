@@ -1,15 +1,20 @@
 import type { LayoutEngine } from "./LayoutEngine";
 import { instagramProfileGrid } from "./instagram/instagramProfileGrid";
 import { telegramAlbumLayout } from "./telegram/telegramAlbumLayout";
+import { TELEGRAM_MAX_ITEMS } from "./constants";
 
-export type PresetId = "tg" | "inst" | "custom";
+export enum PresetId {
+  Telegram = "tg",
+  Instagram = "inst",
+  Custom = "custom",
+}
 
-export const presetEngines: Record<Exclude<PresetId, "custom">, LayoutEngine> = {
-  tg: telegramAlbumLayout,
-  inst: instagramProfileGrid,
+export const presetEngines: Record<Exclude<PresetId, PresetId.Custom>, LayoutEngine> = {
+  [PresetId.Telegram]: telegramAlbumLayout,
+  [PresetId.Instagram]: instagramProfileGrid,
 };
 
 export function clampTelegramCount(itemsCount: number) {
-  return Math.min(10, Math.max(0, itemsCount));
+  return Math.min(TELEGRAM_MAX_ITEMS, Math.max(0, itemsCount));
 }
 

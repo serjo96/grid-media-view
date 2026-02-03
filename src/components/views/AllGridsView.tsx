@@ -1,10 +1,12 @@
 import type { GridState } from "../../store/useAppStore";
+import { PresetId } from "../../domain/layout/presets";
+import { PRESET_WIDTH_CUSTOM_DEFAULT } from "../../domain/layout/constants";
 import { StaticGridPreview } from "../StaticGridPreview";
 import { useAppStore } from "../../store/useAppStore";
 
 function presetLabel(p: GridState["preset"]) {
-  if (p === "tg") return "tg";
-  if (p === "inst") return "inst";
+  if (p === PresetId.Telegram) return "tg";
+  if (p === PresetId.Instagram) return "inst";
   return "custom";
 }
 
@@ -40,7 +42,7 @@ export function AllGridsView(props: {
                   <span className="gridCardTag">{g.items.length}</span>
                 </div>
               </div>
-              <StaticGridPreview grid={g} widthPx={420} maxWidthPx={520} />
+              <StaticGridPreview grid={g} widthPx={PRESET_WIDTH_CUSTOM_DEFAULT} maxWidthPx={520} />
             </button>
             {canDelete && (
               <button

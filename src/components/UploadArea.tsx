@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
+import { PresetId } from "../domain/layout/presets";
+import { TELEGRAM_MAX_ITEMS } from "../domain/layout/constants";
 
 interface UploadAreaProps {
   onDragStart?: () => void;
@@ -7,7 +9,7 @@ interface UploadAreaProps {
 
 export function UploadArea({ onDragStart }: UploadAreaProps) {
   const addFiles = useAppStore((s) => s.addFiles);
-  const preset = useAppStore((s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.preset ?? "tg");
+  const preset = useAppStore((s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.preset ?? PresetId.Telegram);
   const itemsCount = useAppStore(
     (s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.items.length ?? 0,
   );
@@ -16,7 +18,7 @@ export function UploadArea({ onDragStart }: UploadAreaProps) {
   const [isOver, setIsOver] = useState(false);
 
   const hint = useMemo(() => {
-    if (preset === "tg") return `Telegram: максимум 10 файлов в альбоме (сейчас ${itemsCount}).`;
+    if (preset === PresetId.Telegram) return `Telegram: максимум ${TELEGRAM_MAX_ITEMS} файлов в альбоме (сейчас ${itemsCount}).`;
     return `Можно загрузить сколько угодно (сейчас ${itemsCount}).`;
   }, [itemsCount, preset]);
 

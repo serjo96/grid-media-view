@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import { useAppStore, type GridState, type MediaItem } from "../../store/useAppStore";
+import { PresetId } from "../../domain/layout/presets";
+import { PRESET_WIDTH_INSTAGRAM, PRESET_WIDTH_CUSTOM_DEFAULT } from "../../domain/layout/constants";
 import type { InstagramMedia } from "../../domain/instagram/instagramApi";
 import { StaticGridPreview } from "../StaticGridPreview";
 import { GridPreview } from "../GridPreview/GridPreview";
@@ -40,8 +42,8 @@ export function InstagramView(props: {
       id: "ig_current",
       name: "Instagram current",
       createdAt: ig.lastFetchedAt ?? 0,
-      preset: "inst",
-      custom: activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 },
+      preset: PresetId.Instagram,
+      custom: activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: PRESET_WIDTH_CUSTOM_DEFAULT },
       items: mediaToItems(ig.media),
       crops: {},
     };
@@ -54,7 +56,7 @@ export function InstagramView(props: {
         {ig.media.length === 0 ? (
           <div className="uploadHint">Нет данных. Подключите аккаунт (token) и нажмите Connect/Refresh.</div>
         ) : (
-          <StaticGridPreview grid={currentGrid} presetOverride="inst" widthPx={560} maxWidthPx={560} />
+          <StaticGridPreview grid={currentGrid} presetOverride={PresetId.Instagram} widthPx={PRESET_WIDTH_INSTAGRAM} maxWidthPx={PRESET_WIDTH_INSTAGRAM} />
         )}
       </div>
 

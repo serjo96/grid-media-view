@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import Cropper from "react-easy-crop";
 import type { Area, Point } from "react-easy-crop";
 import { defaultCoverCrop } from "../domain/crop/defaultCrop";
+import { ASPECT_PRECISION } from "../domain/layout/constants";
 import { useAppStore } from "../store/useAppStore";
 
 export function CropModal() {
@@ -58,7 +59,7 @@ export function CropModal() {
       <div className="modal">
         <div className="modalHeader">
           <div className="modalTitle">
-            Crop • {item.fileName} • aspect {targetAspect.toFixed(4)}
+            Crop • {item.fileName} • aspect {targetAspect.toFixed(ASPECT_PRECISION)}
           </div>
           <button className="btn" type="button" onClick={closeCrop}>
             Close

@@ -6,6 +6,8 @@ import { StackList } from "./components/StackList";
 import { GridPreview } from "./components/GridPreview/GridPreview";
 import { CropModal } from "./components/CropModal";
 import { useAppStore } from "./store/useAppStore";
+import { PresetId } from "./domain/layout/presets";
+import { PRESET_WIDTH_CUSTOM_DEFAULT, ViewMode } from "./domain/layout/constants";
 import { TgChatView } from "./components/views/TgChatView";
 import { AllGridsView } from "./components/views/AllGridsView";
 import { InstagramPanel } from "./components/InstagramPanel";
@@ -21,7 +23,7 @@ function App() {
   const hydrating = useAppStore((s) => s.persistence.hydrating);
   const canDelete = grids.length > 1;
 
-  const [viewMode, setViewMode] = useState<"single" | "tgChat" | "allGrids">("single");
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Single);
   const [replaceMode, setReplaceMode] = useState(false);
   const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
   const replaceTargetIdRef = useRef<string | null>(null);
@@ -44,18 +46,18 @@ function App() {
 
   const activeGrid = useAppStore((s) => s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0]);
 
-  const preset = activeGrid?.preset ?? "tg";
+  const preset = activeGrid?.preset ?? PresetId.Telegram;
   const setPreset = useAppStore((s) => s.setPreset);
   const clear = useAppStore((s) => s.clear);
-  const custom = activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 };
+  const custom = activeGrid?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: PRESET_WIDTH_CUSTOM_DEFAULT };
   const setCustom = useAppStore((s) => s.setCustom);
 
   useEffect(() => {
     // Keep view controls simple:
     // - TG chat view only makes sense for Telegram preset.
     // - For other presets we silently fall back to single.
-    if (preset !== "tg" && viewMode === "tgChat") {
-      setViewMode("single");
+    if (preset !== PresetId.Telegram && viewMode === ViewMode.TgChat) {
+      setViewMode(ViewMode.Single);
     }
   }, [preset, viewMode]);
 
@@ -90,14 +92,14 @@ function App() {
   }, []);
 
   const previewTitle = useMemo(() => {
-    if (viewMode === "tgChat") return "Telegram chat";
-    if (viewMode === "allGrids") return "All grids";
+    if (viewMode === ViewMode.TgChat) return "Telegram chat";
+    if (viewMode === ViewMode.AllGrids) return "All grids";
     return "Preview";
   }, [viewMode]);
 
   const previewHint = useMemo(() => {
-    if (viewMode === "tgChat") return "Scroll like a chat; each message is a grid preview";
-    if (viewMode === "allGrids") return "All grids at once (click to open)";
+    if (viewMode === ViewMode.TgChat) return "Scroll like a chat; each message is a grid preview";
+    if (viewMode === ViewMode.AllGrids) return "All grids at once (click to open)";
     return "Grid/album layout + crop + reorder";
   }, [viewMode]);
 
@@ -154,40 +156,40 @@ function App() {
               <select
                 className="select"
                 value={preset}
-                onChange={(e) => setPreset(e.target.value as typeof preset)}
+                onChange={(e) => setPreset(e.target.value as PresetId)}
                 aria-label="Preset"
               >
-                <option value="tg">Telegram (album)</option>
-                <option value="inst">Instagram (profile grid)</option>
-                <option value="custom">Custom</option>
+                <option value={PresetId.Telegram}>Telegram (album)</option>
+                <option value={PresetId.Instagram}>Instagram (profile grid)</option>
+                <option value={PresetId.Custom}>Custom</option>
               </select>
             </label>
 
-            {preset === "tg" && (
+            {preset === PresetId.Telegram && (
               <label className="pill">
                 <span style={{ fontSize: 12, color: "var(--muted)" }}>View</span>
                 <select
                   className="select"
                   value={viewMode}
-                  onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
+                  onChange={(e) => setViewMode(e.target.value as ViewMode)}
                   aria-label="View mode"
                 >
-                  <option value="single">Active grid</option>
-                  <option value="tgChat">TG chat</option>
-                  <option value="allGrids">All grids</option>
+                  <option value={ViewMode.Single}>Active grid</option>
+                  <option value={ViewMode.TgChat}>TG chat</option>
+                  <option value={ViewMode.AllGrids}>All grids</option>
                 </select>
               </label>
             )}
 
-            {preset === "custom" && (
+            {preset === PresetId.Custom && (
               <div className="pill" aria-label="View mode">
                 <span style={{ fontSize: 12, color: "var(--muted)" }}>View</span>
                 <div className="viewToggle" role="group" aria-label="Custom view toggle">
                   <button
-                    className={`btn viewToggleBtn ${viewMode === "single" ? "btnToggleActive" : ""}`}
+                    className={`btn viewToggleBtn ${viewMode === ViewMode.Single ? "btnToggleActive" : ""}`}
                     type="button"
-                    onClick={() => setViewMode("single")}
-                    aria-pressed={viewMode === "single"}
+                    onClick={() => setViewMode(ViewMode.Single)}
+                    aria-pressed={viewMode === ViewMode.Single}
                     title="Active grid"
                   >
                     <span className="viewToggleIcon" aria-hidden="true">
@@ -203,10 +205,10 @@ function App() {
                     <span className="viewToggleText">Single</span>
                   </button>
                   <button
-                    className={`btn viewToggleBtn ${viewMode === "allGrids" ? "btnToggleActive" : ""}`}
+                    className={`btn viewToggleBtn ${viewMode === ViewMode.AllGrids ? "btnToggleActive" : ""}`}
                     type="button"
-                    onClick={() => setViewMode("allGrids")}
-                    aria-pressed={viewMode === "allGrids"}
+                    onClick={() => setViewMode(ViewMode.AllGrids)}
+                    aria-pressed={viewMode === ViewMode.AllGrids}
                     title="All grids"
                   >
                     <span className="viewToggleIcon" aria-hidden="true">
@@ -351,7 +353,7 @@ function App() {
                             <span style={{ color: "var(--muted)", fontSize: 12 }}>{g.items.length} files</span>
                           </div>
                           <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
-                            preset: {g.preset === "tg" ? "tg" : g.preset === "inst" ? "inst" : "custom"}
+                            preset: {g.preset === PresetId.Telegram ? "tg" : g.preset === PresetId.Instagram ? "inst" : "custom"}
                           </div>
                         </button>
                         {canDelete && (
@@ -415,13 +417,13 @@ function App() {
               </div>
             </details>
 
-            {preset === "inst" && (
+            {preset === PresetId.Instagram && (
               <div style={{ paddingTop: 14 }}>
                 <InstagramPanel />
               </div>
             )}
 
-            {preset === "custom" && (
+            {preset === PresetId.Custom && (
               <details 
                 className="filesSectionAccordion" 
                 open={customPresetOpen}
@@ -493,12 +495,12 @@ function App() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
               <div>
                 <div className="panelTitle">
-                  {viewMode === "single" && activeGrid ? `${previewTitle}: ${activeGrid.name}` : previewTitle}
+                  {viewMode === ViewMode.Single && activeGrid ? `${previewTitle}: ${activeGrid.name}` : previewTitle}
                 </div>
                 <div className="panelHint">{previewHint}</div>
               </div>
             </div>
-            {viewMode === "single" && (
+            {viewMode === ViewMode.Single && (
               <div className="previewHeaderActions">
                 {grids.length > 1 && (
                   <div className="gridNavButtons">
@@ -547,8 +549,8 @@ function App() {
             )}
           </div>
           <div className="panelBody">
-            {viewMode === "single" &&
-              (preset === "inst" ? (
+            {viewMode === ViewMode.Single &&
+              (preset === PresetId.Instagram ? (
                 <InstagramView
                   replaceMode={replaceMode}
                   replaceTargetId={effectiveReplaceTargetId}
@@ -557,23 +559,23 @@ function App() {
               ) : (
                 <GridPreview replaceMode={replaceMode} replaceTargetId={effectiveReplaceTargetId} onRequestReplace={requestReplace} />
               ))}
-            {viewMode === "tgChat" && (
+            {viewMode === ViewMode.TgChat && (
               <TgChatView
                 grids={grids}
                 activeGridId={activeGridId}
                 onOpenGrid={(id) => {
                   selectGrid(id);
-                  setViewMode("single");
+                  setViewMode(ViewMode.Single);
                 }}
               />
             )}
-            {viewMode === "allGrids" && (
+            {viewMode === ViewMode.AllGrids && (
               <AllGridsView
                 grids={grids}
                 activeGridId={activeGridId}
                 onOpenGrid={(id) => {
                   selectGrid(id);
-                  setViewMode("single");
+                  setViewMode(ViewMode.Single);
                 }}
               />
             )}

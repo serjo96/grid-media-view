@@ -2,7 +2,8 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { shallow } from "zustand/shallow";
 import type { CropAreaNorm } from "../domain/crop/cropTypes";
-import { clampTelegramCount, type PresetId } from "../domain/layout/presets";
+import { clampTelegramCount, PresetId } from "../domain/layout/presets";
+import { PRESET_WIDTH_CUSTOM_DEFAULT } from "../domain/layout/constants";
 import type { InstagramMedia, InstagramProfile } from "../domain/instagram/instagramApi";
 import { fetchInstagramMedia, fetchInstagramProfile } from "../domain/instagram/instagramApi";
 import { loadGridsFromLocal, peekLocalSnapshotInfo, persistGridsLocally } from "../persistence/gridsPersistence";
@@ -186,8 +187,8 @@ function revokeItemUrls(it: MediaItem) {
   if (it.previewUrl !== it.objectUrl) URL.revokeObjectURL(it.previewUrl);
 }
 
-const initialCustom: CustomPreset = { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 };
-const initialGrid: GridState = createEmptyGrid({ name: "Grid 1", preset: "tg", custom: initialCustom });
+const initialCustom: CustomPreset = { columns: 3, tileAspect: 1, gap: 6, containerWidth: PRESET_WIDTH_CUSTOM_DEFAULT };
+const initialGrid: GridState = createEmptyGrid({ name: "Grid 1", preset: PresetId.Telegram, custom: initialCustom });
 
 const IG_TOKEN_STORAGE_KEY = "gridTest:instagramAccessToken";
 
@@ -259,8 +260,8 @@ export const useAppStore = create<AppState>()(
     const name = `Grid ${s.grids.length + 1}`;
     const next = createEmptyGrid({
       name,
-      preset: active?.preset ?? "tg",
-      custom: active?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: 420 },
+      preset: active?.preset ?? PresetId.Telegram,
+      custom: active?.custom ?? { columns: 3, tileAspect: 1, gap: 6, containerWidth: PRESET_WIDTH_CUSTOM_DEFAULT },
     });
     set({
       grids: [...s.grids, next],
@@ -427,7 +428,7 @@ export const useAppStore = create<AppState>()(
     const current = grid.items;
     const preset = grid.preset;
     const maxAllowed =
-      preset === "tg" ? clampTelegramCount(current.length + files.length) : current.length + files.length;
+      preset === PresetId.Telegram ? clampTelegramCount(current.length + files.length) : current.length + files.length;
     const canAdd = Math.max(0, maxAllowed - current.length);
     const slice = files.slice(0, canAdd);
 

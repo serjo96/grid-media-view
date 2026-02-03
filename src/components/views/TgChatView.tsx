@@ -1,4 +1,5 @@
 import type { GridState } from "../../store/useAppStore";
+import { PresetId } from "../../domain/layout/presets";
 import { StaticGridPreview } from "../StaticGridPreview";
 import { useAppStore } from "../../store/useAppStore";
 
@@ -45,7 +46,7 @@ export function TgChatView(props: {
                 </div>
 
                 <div className="tgMsgBody">
-                  <StaticGridPreview grid={g} presetOverride="tg" widthPx={320} maxWidthPx={340} className="tgBubblePreview" />
+                  <StaticGridPreview grid={g} presetOverride={PresetId.Telegram} widthPx={320} maxWidthPx={340} className="tgBubblePreview" />
                 </div>
 
                 <div className="tgMsgFooter">{fmtTime(g.createdAt)}</div>

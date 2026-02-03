@@ -1,4 +1,5 @@
 import { useAppStore } from "../store/useAppStore";
+import { PresetId } from "../domain/layout/presets";
 
 function fmtTime(ts: number | null) {
   if (!ts) return "";
@@ -11,7 +12,7 @@ function fmtTime(ts: number | null) {
 }
 
 export function InstagramPanel() {
-  const preset = useAppStore((s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.preset ?? "tg");
+  const preset = useAppStore((s) => (s.grids.find((g) => g.id === s.activeGridId) ?? s.grids[0])?.preset ?? PresetId.Telegram);
   const ig = useAppStore((s) => s.instagram);
   const setToken = useAppStore((s) => s.setInstagramToken);
   const connect = useAppStore((s) => s.connectInstagram);
@@ -19,7 +20,7 @@ export function InstagramPanel() {
   const disconnect = useAppStore((s) => s.disconnectInstagram);
   const apply = useAppStore((s) => s.applyInstagramGridToActive);
 
-  if (preset !== "inst") return null;
+  if (preset !== PresetId.Instagram) return null;
 
   const canApply = ig.media.length > 0;
   const isBusy = ig.status === "loading";
