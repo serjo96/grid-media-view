@@ -61,6 +61,9 @@ type AppState = {
   persistence: {
     hydrating: boolean;
     snapshot: "unknown" | "none" | "present";
+    dirty: boolean;
+    saving: boolean;
+    lastSavedAt: number | null;
     error: string | null;
   };
 
@@ -96,6 +99,9 @@ type AppState = {
   openCrop: (args: { itemId: string; cropKey: string; targetAspect: number }) => void;
   closeCrop: () => void;
   setCrop: (args: { itemId: string; cropKey: string; crop: CropAreaNorm }) => void;
+
+  /** Force immediate local snapshot save (in addition to autosave) */
+  saveNow: () => Promise<void>;
 };
 
 function makeId() {
@@ -243,7 +249,7 @@ export const useAppStore = create<AppState>()(
   grids: [initialGrid],
   activeGridId: initialGrid.id,
   cropModal: { open: false, gridId: null, itemId: null, cropKey: null, targetAspect: null },
-  persistence: { hydrating: false, snapshot: "unknown", error: null },
+  persistence: { hydrating: false, snapshot: "unknown", dirty: false, saving: false, lastSavedAt: null, error: null },
 
   instagram: {
     token: typeof window !== "undefined" ? loadInstagramTokenFromStorage() : "",
@@ -606,6 +612,10 @@ export const useAppStore = create<AppState>()(
         };
       }),
     })),
+
+  saveNow: async () => {
+    await flushPersist();
+  },
   })),
 );
 
@@ -632,8 +642,14 @@ async function flushPersist() {
   }
   persistRunning = true;
   try {
+    useAppStore.setState((s) => ({
+      persistence: { ...s.persistence, saving: true, error: null },
+    }));
     const s = useAppStore.getState();
     await persistGridsLocally({ grids: s.grids, activeGridId: s.activeGridId });
+    useAppStore.setState((st) => ({
+      persistence: { ...st.persistence, saving: false, dirty: false, lastSavedAt: Date.now(), error: null },
+    }));
   } finally {
     persistRunning = false;
     if (persistPending) {
@@ -660,6 +676,8 @@ async function initLocalPersistence() {
         ...s.persistence,
         snapshot: info.hasSnapshot ? "present" : "none",
         hydrating: info.hasSnapshot && info.totalItems > 0,
+        dirty: false,
+        saving: false,
         error: null,
       },
     }));
@@ -673,7 +691,7 @@ async function initLocalPersistence() {
         grids: loaded.grids,
         activeGridId: loaded.activeGridId,
         cropModal: closeCropModalState(),
-        persistence: { ...s.persistence, hydrating: false, error: null },
+        persistence: { ...s.persistence, hydrating: false, dirty: false, saving: false, error: null },
       }));
     } else {
       useAppStore.setState((s) => ({ persistence: { ...s.persistence, hydrating: false } }));
@@ -691,7 +709,11 @@ if (typeof window !== "undefined") {
 
   useAppStore.subscribe(
     (s) => ({ grids: s.grids, activeGridId: s.activeGridId }),
-    () => schedulePersist(),
+    () => {
+      // Mark dirty immediately; actual save is debounced.
+      useAppStore.setState((st) => ({ persistence: { ...st.persistence, dirty: true } }));
+      schedulePersist();
+    },
     { equalityFn: shallow },
   );
 }

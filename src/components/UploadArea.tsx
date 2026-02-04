@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAppStore } from "../store/useAppStore";
 import { PresetId } from "../domain/layout/presets";
@@ -17,6 +17,19 @@ export function UploadArea({ onDragStart }: UploadAreaProps) {
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isOver, setIsOver] = useState(false);
+  const [canDrop, setCanDrop] = useState(() => {
+    if (typeof window === "undefined") return true;
+    // On touch devices the drop-zone UX is misleading; keep "Choose files" only.
+    return window.innerWidth > 720;
+  });
+
+  // Track viewport changes (rotate / resize)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onResize = () => setCanDrop(window.innerWidth > 720);
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const hint = useMemo(() => {
     if (preset === PresetId.Telegram) return `Telegram: максимум ${TELEGRAM_MAX_ITEMS} файлов в альбоме (сейчас ${itemsCount}).`;
@@ -27,23 +40,35 @@ export function UploadArea({ onDragStart }: UploadAreaProps) {
     <div className="uploadArea">
       <div
         className={`uploadDrop ${isOver ? "uploadDropActive" : ""}`}
-        onDragEnter={(e) => {
-          e.preventDefault();
-          setIsOver(true);
-          onDragStart?.();
-        }}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsOver(true);
-        }}
-        onDragLeave={() => setIsOver(false)}
-        onDrop={async (e) => {
-          e.preventDefault();
-          setIsOver(false);
-          if (e.dataTransfer?.files?.length) {
-            await addFiles(e.dataTransfer.files);
-          }
-        }}
+        onDragEnter={
+          canDrop
+            ? (e) => {
+                e.preventDefault();
+                setIsOver(true);
+                onDragStart?.();
+              }
+            : undefined
+        }
+        onDragOver={
+          canDrop
+            ? (e) => {
+                e.preventDefault();
+                setIsOver(true);
+              }
+            : undefined
+        }
+        onDragLeave={canDrop ? () => setIsOver(false) : undefined}
+        onDrop={
+          canDrop
+            ? async (e) => {
+                e.preventDefault();
+                setIsOver(false);
+                if (e.dataTransfer?.files?.length) {
+                  await addFiles(e.dataTransfer.files);
+                }
+              }
+            : undefined
+        }
       >
         <div className="uploadRow">
           <div>

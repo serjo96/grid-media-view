@@ -114,6 +114,8 @@
 
 .filesPanel {
   order: 0;
+  // On mobile: bottom padding so fixed upload bar doesn't overlap accordion
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
 }
 
 .panel {
@@ -158,11 +160,37 @@
   background: rgba(10, 11, 16, 0.85);
 }
 
+// Preview header: one row height, all controls aligned and icons centered
+.previewPanel .panelHeader.panelHeaderSticky {
+  align-items: center;
+}
+
 .previewHeaderActions {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-width: 0;
+
+  .pill,
+  .btn {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .btn {
+    padding: 6px 10px;
+  }
+
+  .btnIcon {
+    margin-right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 .gridNavButtons {
@@ -172,6 +200,7 @@
 
   .btn {
     padding: 6px 8px;
+    min-height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -427,6 +456,13 @@
 
   .panelHint {
     width: auto;
+  }
+}
+
+// --- from-sm: remove mobile-only files panel padding (no fixed bar) ---
+@include from-sm {
+  .filesPanel {
+    padding-bottom: 0;
   }
 }
 

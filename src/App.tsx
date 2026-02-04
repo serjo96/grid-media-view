@@ -21,6 +21,8 @@ function App() {
   const deleteGrid = useAppStore((s) => s.deleteGrid);
   const replaceItemFile = useAppStore((s) => s.replaceItemFile);
   const hydrating = useAppStore((s) => s.persistence.hydrating);
+  const persistence = useAppStore((s) => s.persistence);
+  const saveNow = useAppStore((s) => s.saveNow);
   const canDelete = grids.length > 1;
 
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Single);
@@ -29,7 +31,11 @@ function App() {
   const editTargetIdRef = useRef<string | null>(null);
   const replaceInputRef = useRef<HTMLInputElement | null>(null);
   
-  // Mobile accordion states
+  // Responsive / mobile accordion states
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth <= 720;
+  });
   const [filesPanelOpen, setFilesPanelOpen] = useState(() => {
     // On mobile, start closed; on desktop, start open
     if (typeof window !== "undefined") {
@@ -37,7 +43,12 @@ function App() {
     }
     return true;
   });
-  const [gridsSectionOpen, setGridsSectionOpen] = useState(false);
+  const [gridsPanelOpen, setGridsPanelOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth > 980;
+    }
+    return true;
+  });
   const [customPresetOpen, setCustomPresetOpen] = useState(false);
   
   // Topbar visibility on mobile
@@ -65,6 +76,12 @@ function App() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     
+    const onResize = () => {
+      setIsMobile(window.innerWidth <= 720);
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    onResize();
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const isMobile = window.innerWidth <= 720;
@@ -88,7 +105,10 @@ function App() {
     };
 
     window.addEventListener("scroll", throttledHandleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", throttledHandleScroll);
+    return () => {
+      window.removeEventListener("scroll", throttledHandleScroll);
+      window.removeEventListener("resize", onResize);
+    };
   }, []);
 
   const previewTitle = useMemo(() => {
@@ -279,6 +299,101 @@ function App() {
 
       <div className="content">
         <div className={`filesPanel ${filesPanelOpen ? "filesPanelOpen" : "filesPanelClosed"}`}>
+          <details
+            className="panel panelAccordion"
+            open={gridsPanelOpen}
+            onToggle={(e) => setGridsPanelOpen((e.target as HTMLDetailsElement).open)}
+          >
+            <summary className="panelHeader panelSummary" aria-label="Grids panel">
+              <div className="panelTitle">Grids</div>
+              <div className="panelHint">{isMobile ? "Управление сетками" : "Create / switch / delete"}</div>
+              <div className="accordionChevron" aria-hidden="true" />
+            </summary>
+            <div className="panelBody">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                <div style={{ fontWeight: 650, fontSize: 13 }}>Grids</div>
+                <button className="btn" type="button" onClick={createGrid} aria-label="Create new grid">
+                  Create new
+                </button>
+              </div>
+              <div style={{ height: 10 }} />
+              <div style={{ display: "grid", gap: 8 }}>
+                {grids.map((g) => {
+                  const active = g.id === activeGridId;
+                  return (
+                    <div
+                      key={g.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "stretch",
+                        gap: 0,
+                        position: "relative",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="btn"
+                        onClick={() => selectGrid(g.id)}
+                        style={{
+                          flex: 1,
+                          textAlign: "left",
+                          borderTop: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
+                          borderBottom: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
+                          borderLeft: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
+                          borderRight: canDelete ? "1px solid var(--border)" : active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
+                          background: active ? "rgba(124, 92, 255, 0.10)" : undefined,
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
+                          marginRight: 0,
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                          <span style={{ fontWeight: 650 }}>{g.name}</span>
+                          <span style={{ color: "var(--muted)", fontSize: 12 }}>{g.items.length} files</span>
+                        </div>
+                        <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
+                          preset: {g.preset === PresetId.Telegram ? "tg" : g.preset === PresetId.Instagram ? "inst" : "custom"}
+                        </div>
+                      </button>
+                      {canDelete && (
+                        <button
+                          type="button"
+                          className="btn btnDanger"
+                          onClick={() => deleteGrid(g.id)}
+                          aria-label={`Delete ${g.name}`}
+                          title="Delete grid"
+                          style={{
+                            padding: "8px 10px",
+                            flexShrink: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderTopLeftRadius: 0,
+                            borderBottomLeftRadius: 0,
+                            borderLeft: "none",
+                            marginLeft: 0,
+                          }}
+                        >
+                          <span className="btnIcon" aria-hidden="true" style={{ marginRight: 0 }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                              <path
+                                d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </details>
+
           <details 
             className="panel panelAccordion" 
             open={filesPanelOpen}
@@ -286,116 +401,10 @@ function App() {
           >
           <summary className="panelHeader panelSummary" aria-label="Files panel">
             <div className="panelTitle">Files</div>
-            <div className="panelHint">Drop images here</div>
+            <div className="panelHint">{isMobile ? "Загрузка через кнопку (без drag&drop)" : "Drop images here"}</div>
             <div className="accordionChevron" aria-hidden="true" />
           </summary>
           <div className="panelBody">
-            <details 
-              className="filesSectionAccordion" 
-              open={gridsSectionOpen}
-              onToggle={(e) => setGridsSectionOpen((e.target as HTMLDetailsElement).open)}
-            >
-              <summary className="filesSectionSummary">
-                <div style={{ fontWeight: 650, fontSize: 13 }}>Grids</div>
-                <button 
-                  className="btn btnMobileOnly" 
-                  type="button" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    createGrid();
-                  }}
-                  aria-label="Create new grid"
-                >
-                  Create new
-                </button>
-                <div className="accordionChevron" aria-hidden="true" />
-              </summary>
-              <div style={{ paddingTop: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-                  <div style={{ fontWeight: 650, fontSize: 13 }}>Grids</div>
-                  <button className="btn btnDesktopOnly" type="button" onClick={createGrid}>
-                    Create new
-                  </button>
-                </div>
-                <div style={{ height: 10 }} />
-                <div style={{ display: "grid", gap: 8 }}>
-                  {grids.map((g) => {
-                    const active = g.id === activeGridId;
-                    return (
-                      <div
-                        key={g.id}
-                        style={{
-                          display: "flex",
-                          alignItems: "stretch",
-                          gap: 0,
-                          position: "relative",
-                        }}
-                      >
-                        <button
-                          type="button"
-                          className="btn"
-                          onClick={() => selectGrid(g.id)}
-                          style={{
-                            flex: 1,
-                            textAlign: "left",
-                            borderTop: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
-                            borderBottom: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
-                            borderLeft: active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
-                            borderRight: canDelete ? "1px solid var(--border)" : active ? "1px solid rgba(124, 92, 255, 0.55)" : undefined,
-                            background: active ? "rgba(124, 92, 255, 0.10)" : undefined,
-                            borderTopRightRadius: 0,
-                            borderBottomRightRadius: 0,
-                            marginRight: 0,
-                          }}
-                        >
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                            <span style={{ fontWeight: 650 }}>{g.name}</span>
-                            <span style={{ color: "var(--muted)", fontSize: 12 }}>{g.items.length} files</span>
-                          </div>
-                          <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
-                            preset: {g.preset === PresetId.Telegram ? "tg" : g.preset === PresetId.Instagram ? "inst" : "custom"}
-                          </div>
-                        </button>
-                        {canDelete && (
-                          <button
-                            type="button"
-                            className="btn btnDanger"
-                            onClick={() => deleteGrid(g.id)}
-                            aria-label={`Delete ${g.name}`}
-                            title="Delete grid"
-                            style={{
-                              padding: "8px 10px",
-                              flexShrink: 0,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              borderTopLeftRadius: 0,
-                              borderBottomLeftRadius: 0,
-                              borderLeft: "none",
-                              marginLeft: 0,
-                            }}
-                          >
-                            <span className="btnIcon" aria-hidden="true" style={{ marginRight: 0 }}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                <path
-                                  d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </span>
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </details>
-
             <div style={{ paddingTop: 14, paddingBottom: 14 }}>
               <UploadArea onDragStart={() => {
                 if (typeof window !== "undefined" && window.innerWidth <= 980) {
@@ -507,6 +516,26 @@ function App() {
             </div>
             {viewMode === ViewMode.Single && (
               <div className="previewHeaderActions">
+                <div className="pill" style={{ gap: 8 }}>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>
+                    {persistence.saving ? "Saving…" : persistence.dirty ? "Not saved" : "Saved"}
+                  </span>
+                  <button
+                    className={`btn ${persistence.dirty ? "btnToggleActive" : ""}`}
+                    type="button"
+                    onClick={() => saveNow()}
+                    disabled={persistence.saving || !persistence.dirty}
+                    aria-label="Save changes"
+                    title="Save now"
+                  >
+                    Save
+                  </button>
+                </div>
+                {(activeGrid?.items.length ?? 0) > 0 && (
+                  <button className="btn btnDanger" type="button" onClick={clear} aria-label="Clear grid">
+                    Clear
+                  </button>
+                )}
                 {grids.length > 1 && (
                   <div className="gridNavButtons">
                     <button
@@ -564,11 +593,6 @@ function App() {
                         />
                       </svg>
                     </span>
-                  </button>
-                )}
-                {(activeGrid?.items.length ?? 0) > 0 && (
-                  <button className="btn btnDanger" type="button" onClick={clear} aria-label="Clear grid">
-                    Clear
                   </button>
                 )}
               </div>
